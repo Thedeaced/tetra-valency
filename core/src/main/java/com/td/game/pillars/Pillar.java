@@ -1,0 +1,148 @@
+package com.td.game.pillars;
+
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Disposable;
+import com.td.game.elements.Element;
+import com.td.game.utils.ModelFactory;
+
+public class Pillar implements Disposable {
+    private final PillarType type;
+    private final Vector3 position;
+    private Element currentElement;
+    private Element firstOrb;
+    private boolean active;
+
+    private ModelInstance pillarModelInstance;
+    private final ModelFactory modelFactory;
+
+    private final float baseRange = 5f * (com.td.game.utils.Constants.TILE_SIZE / 2.0f);
+    private float bonusDamageMult = 1f;
+    private float bonusRangeMult = 1f;
+    private float bonusAttackSpeedMult = 1f;
+
+    public Pillar(PillarType type, Vector3 position, ModelFactory modelFactory) {
+        this.type = type;
+        this.position = position.cpy();
+        this.active = false;
+        this.currentElement = null;
+        this.firstOrb = null;
+        this.modelFactory = modelFactory;
+        updateModel();
+    }
+
+    private void updateModel() {
+        Color orbColor = null;
+        if (currentElement != null) {
+            orbColor = new Color(currentElement.getR(), currentElement.getG(), currentElement.getB(), 1f);
+        }
+        Model model = modelFactory.createPillarModel(type, orbColor);
+        this.pillarModelInstance = new ModelInstance(model);
+        this.pillarModelInstance.transform.setToTranslation(position.x, position.y, position.z);
+        this.pillarModelInstance.transform.scl(com.td.game.utils.Constants.TILE_SIZE / 2.0f);
+    }
+
+    public com.badlogic.gdx.math.collision.BoundingBox getBoundingBox() {
+        float scale = com.td.game.utils.Constants.TILE_SIZE / 2.0f;
+        Vector3 min = position.cpy().add(-0.6f * scale, 0, -0.6f * scale);
+        Vector3 max = position.cpy().add(0.6f * scale, 2.0f * scale, 0.6f * scale);
+        return new com.badlogic.gdx.math.collision.BoundingBox(min, max);
+    }
+
+    public boolean placeOrb(Element element) {
+        if (element == null)
+            return false;
+
+        if (!active) {
+            firstOrb = element.isPrime() ? element : null;
+            currentElement = element;
+            active = true;
+            updateModel();
+            return true;
+        } else if (firstOrb != null && currentElement == firstOrb && element.isPrime()) {
+            Element merged = Element.merge(firstOrb, element);
+            if (merged != null) {
+                currentElement = merged;
+                firstOrb = null;
+                updateModel();
+                return true;
+            }
+        }
+        currentElement = element;
+        firstOrb = element.isPrime() ? element : null;
+        updateModel();
+        return true;
+    }
+
+    public void update(float delta) {
+        if (!active)
+            return;
+    }
+
+    public void render(ModelBatch modelBatch, Environment environment) {
+        if (pillarModelInstance != null) {
+            modelBatch.render(pillarModelInstance, environment);
+        }
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public Element getCurrentElement() {
+        return currentElement;
+    }
+
+    public PillarType getType() {
+        return type;
+    }
+
+    public Vector3 getPosition() {
+        return position;
+    }
+
+    public float getAttackRange() {
+        return baseRange * type.getRangeMult() * bonusRangeMult;
+    }
+
+    public boolean canAcceptOrb() {
+        return !active || (firstOrb != null && currentElement == firstOrb);
+    }
+
+    public Element removeOrb() {
+        if (currentElement == null) {
+            return null;
+        }
+        Element removed = currentElement;
+        currentElement = null;
+        firstOrb = null;
+        active = false;
+        updateModel();
+        return removed;
+    }
+
+    public void setExternalMultipliers(float damageMult, float rangeMult, float attackSpeedMult) {
+        float d = Math.max(0.1f, damageMult);
+        float r = Math.max(0.1f, rangeMult);
+        float s = Math.max(0.1f, attackSpeedMult);
+
+        if (Math.abs(bonusDamageMult - d) < 0.0001f &&
+                Math.abs(bonusRangeMult - r) < 0.0001f &&
+                Math.abs(bonusAttackSpeedMult - s) < 0.0001f) {
+            return;
+        }
+
+        bonusDamageMult = d;
+        bonusRangeMult = r;
+        bonusAttackSpeedMult = s;
+    }
+
+    @Override
+    public void dispose() {
+    }
+}
+

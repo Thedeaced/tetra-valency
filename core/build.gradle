@@ -1,0 +1,5 @@
+dependencies {
+    api "com.badlogicgames.gdx:gdx:1.13.0"
+    api "com.badlogicgames.gdx:gdx-freetype:1.13.0"
+    api "com.badlogicgames.gdx-video:gdx-video:1.3.4"
+}

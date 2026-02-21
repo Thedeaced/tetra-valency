@@ -1,0 +1,9 @@
+.gradle/
+build/
+core/build/
+lwjgl3/build/
+**/*.class
+**/*.jar
+*.log
+.DS_Store
+Thumbs.db
