@@ -258,6 +258,16 @@ public class WaveManager implements Disposable {
         return (enemiesInWave - enemiesSpawned) + getAliveEnemyCount();
     }
 
+    public void save(SaveData data) {
+        data.currentWave = this.currentWave;
+        data.enemiesSpawned = this.enemiesSpawned;
+    }
+
+    public void load(SaveData data) {
+        this.currentWave = data.currentWave;
+        this.enemiesSpawned = data.enemiesSpawned;
+    }
+
     @Override
     public void dispose() {
         if (pinkBlobModel != null)
