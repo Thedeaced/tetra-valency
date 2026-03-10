@@ -497,13 +497,6 @@ public class GameScreen implements Screen {
                     mapAreaWidth, screenHeight, staffUI.getEquippedElement());
         }
 
-        // Render enemy health bars
-        uiShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        for (com.td.game.entities.Enemy enemy : waveManager.getActiveEnemies()) {
-            enemy.renderHealthBar(uiShapeRenderer, camera);
-        }
-        uiShapeRenderer.end();
-
         renderMinimalHud(screenWidth, screenHeight, mapAreaWidth);
         renderMessages(screenWidth, screenHeight);
 
@@ -2625,6 +2618,38 @@ public class GameScreen implements Screen {
         uiShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         uiShapeRenderer.setColor(0.1f, 0.1f, 0.15f, 0.85f);
         uiShapeRenderer.rect(px, py, panelW, panelH);
+
+        // draw health bar inside panel
+        float hpBarWidth = panelW - 20f * uiScale;
+        float hpBarHeight = 8f * uiScale;
+        float hpBarX = px + 10f * uiScale;
+        float hpBarY = py + 12f * uiScale;
+
+        uiShapeRenderer.setColor(0.05f, 0.05f, 0.05f, 0.9f);
+        uiShapeRenderer.rect(hpBarX, hpBarY, hpBarWidth, hpBarHeight);
+
+        Color healthColor;
+        if (hoveredEnemy.getElement() != null) {
+            healthColor = new Color(hoveredEnemy.getElement().getR(), hoveredEnemy.getElement().getG(),
+                    hoveredEnemy.getElement().getB(), 1f);
+            if (hoveredEnemy.getArmor() > 0) {
+                healthColor.mul(0.6f, 0.6f, 0.6f, 1f);
+            }
+        } else {
+            float healthPercent = hoveredEnemy.getHealth() / hoveredEnemy.getMaxHealth();
+            if (healthPercent > 0.5f) {
+                healthColor = Color.GREEN;
+            } else if (healthPercent > 0.25f) {
+                healthColor = Color.YELLOW;
+            } else {
+                healthColor = Color.RED;
+            }
+        }
+
+        uiShapeRenderer.setColor(healthColor);
+        float hpWidth = hpBarWidth * (Math.max(0, hoveredEnemy.getHealth()) / hoveredEnemy.getMaxHealth());
+        uiShapeRenderer.rect(hpBarX, hpBarY, hpWidth, hpBarHeight);
+
         uiShapeRenderer.end();
 
         uiShapeRenderer.begin(ShapeRenderer.ShapeType.Line);
@@ -2649,7 +2674,8 @@ public class GameScreen implements Screen {
         textY -= lineH;
 
         uiFont.setColor(Color.WHITE);
-        uiFont.draw(uiBatch, hpStr, textX, textY);
+        // Moved the HP text slightly up to avoid overlapping with the health bar
+        uiFont.draw(uiBatch, hpStr, textX, textY + 5f * uiScale);
 
         uiFont.getData().setScale(uiScale);
         uiBatch.end();
