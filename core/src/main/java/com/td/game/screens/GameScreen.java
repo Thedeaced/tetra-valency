@@ -497,6 +497,13 @@ public class GameScreen implements Screen {
                     mapAreaWidth, screenHeight, staffUI.getEquippedElement());
         }
 
+        // Render enemy health bars
+        uiShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        for (com.td.game.entities.Enemy enemy : waveManager.getActiveEnemies()) {
+            enemy.renderHealthBar(uiShapeRenderer, camera);
+        }
+        uiShapeRenderer.end();
+
         renderMinimalHud(screenWidth, screenHeight, mapAreaWidth);
         renderMessages(screenWidth, screenHeight);
 

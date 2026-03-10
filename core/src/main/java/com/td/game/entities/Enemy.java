@@ -164,32 +164,31 @@ public class Enemy implements Disposable {
         }
     }
 
-    // not working with the enemy models
-    public void renderHealthBar(ShapeRenderer shapeRenderer) {
+    public void renderHealthBar(ShapeRenderer shapeRenderer, com.badlogic.gdx.graphics.Camera camera) {
         if (!alive)
             return;
 
-        float barWidth = 1.2f;
-        float barHeight = 0.15f;
-        float barX = position.x - barWidth / 2f;
+        Vector3 screenPos = camera.project(new Vector3(position.x, position.y + (isFlying ? 3.0f : 2.5f), position.z));
 
-        float yOffset = isFlying ? 2.0f : 1.2f;
-        float barY = position.y + yOffset;
-        float barZ = position.z;
+        // Don't draw if behind camera
+        if (screenPos.z < 0 || screenPos.z > 1)
+            return;
 
-        shapeRenderer.setColor(0.2f, 0.2f, 0.2f, 0.9f);
-        shapeRenderer.box(barX, barY, barZ, barWidth, barHeight, 0.05f);
+        float barWidth = 40f;
+        float barHeight = 6f;
+        float barX = screenPos.x - barWidth / 2f;
+        float barY = screenPos.y;
+
+        shapeRenderer.setColor(0.1f, 0.1f, 0.1f, 0.9f);
+        shapeRenderer.rect(barX, barY, barWidth, barHeight);
 
         Color healthColor;
         if (element != null) {
-
             healthColor = new Color(element.getR(), element.getG(), element.getB(), 1f);
             if (armor > 0) {
-
-                healthColor.mul(0.7f, 0.7f, 0.7f, 1f);
+                healthColor.mul(0.6f, 0.6f, 0.6f, 1f); // Darker
             }
         } else {
-
             float healthPercent = health / maxHealth;
             if (healthPercent > 0.5f) {
                 healthColor = Color.GREEN;
@@ -202,7 +201,7 @@ public class Enemy implements Disposable {
 
         shapeRenderer.setColor(healthColor);
         float healthWidth = barWidth * (health / maxHealth);
-        shapeRenderer.box(barX, barY, barZ, healthWidth, barHeight, 0.05f);
+        shapeRenderer.rect(barX, barY, healthWidth, barHeight);
     }
 
     public void setElement(Element element) {
