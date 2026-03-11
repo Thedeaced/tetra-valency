@@ -1127,8 +1127,7 @@ public class GameScreen implements Screen {
         }
 
         uiFontLarge.setColor(canStartWave ? Color.BLACK : Color.DARK_GRAY);
-        String playText = waveManager.areAllWavesComplete() ? "DONE"
-                : (waveManager.isWaveInProgress() ? "" : "PLAY");
+        String playText = waveManager.areAllWavesComplete() ? "DONE" : "PLAY";
         glyphLayout.setText(uiFontLarge, playText);
         if (glyphLayout.width > playBtnW - 4f) {
             uiFont.setColor(canStartWave ? Color.BLACK : Color.DARK_GRAY);
@@ -1714,6 +1713,10 @@ public class GameScreen implements Screen {
             player.load(data);
             inventory.load(data);
             staffUI.load(data);
+            if (staffUI.hasOrb()) {
+                int idx = staffUI.getEquippedElement().ordinal();
+                player.setStaffOrbModel(new com.badlogic.gdx.graphics.g3d.ModelInstance(orbModels[idx]), staffUI.getEquippedElement());
+            }
 
             if (data.mergeSlot1 != null) mergeBoard.setSlot1Element(Element.valueOf(data.mergeSlot1));
             if (data.mergeSlot2 != null) mergeBoard.setSlot2Element(Element.valueOf(data.mergeSlot2));
@@ -2531,8 +2534,12 @@ public class GameScreen implements Screen {
                         }
 
                         if (!occupied) {
-                            selectedTilePos = new Vector3(sx, 0, sz);
-                            buildMenu.show(screenX, flippedY, true);
+                            if (!waveManager.isWaveInProgress()) {
+                                selectedTilePos = new Vector3(sx, 0, sz);
+                                buildMenu.show(screenX, flippedY, true);
+                            } else {
+                                showMessage("Cannot build during a wave!");
+                            }
                         }
                         return true;
                     }
