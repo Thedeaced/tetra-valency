@@ -181,6 +181,7 @@ public class GameScreen implements Screen {
     private static final int MERGE_COST = 20;
     private static final float INFO_PANEL_SHIFT_DOWN = 100f;
     private static final float GATE_MODEL_SCALE_MULTIPLIER = 2.0f;
+
     public GameScreen(TowerDefenseGame game) {
         this(game, GameMap.MapType.ELEMENTAL_CASTLE, false);
     }
@@ -459,13 +460,13 @@ public class GameScreen implements Screen {
         int screenHeight = Gdx.graphics.getHeight();
         int mapAreaWidth = (int) (screenWidth - shopWidth);
 
-        Gdx.gl.glViewport(0, 0, mapAreaWidth, screenHeight);
+        com.badlogic.gdx.graphics.glutils.HdpiUtils.glViewport(0, 0, mapAreaWidth, screenHeight);
         uiBatch.getProjectionMatrix().setToOrtho2D(0, 0, mapAreaWidth, screenHeight);
         uiBatch.begin();
         uiBatch.draw(mapAreaBackgroundTexture, 0, 0, mapAreaWidth, screenHeight);
         uiBatch.end();
 
-        Gdx.gl.glViewport(0, 0, mapAreaWidth, screenHeight);
+        com.badlogic.gdx.graphics.glutils.HdpiUtils.glViewport(0, 0, mapAreaWidth, screenHeight);
         modelBatch.begin(camera);
         gameMap.render(modelBatch, environment);
 
@@ -506,7 +507,7 @@ public class GameScreen implements Screen {
 
         uiShapeRenderer.getProjectionMatrix().setToOrtho2D(0, 0, screenWidth, screenHeight);
 
-        Gdx.gl.glViewport(0, 0, screenWidth, screenHeight);
+        com.badlogic.gdx.graphics.glutils.HdpiUtils.glViewport(0, 0, screenWidth, screenHeight);
         uiBatch.getProjectionMatrix().setToOrtho2D(0, 0, screenWidth, screenHeight);
 
         if (hoveredPillar != null) {
@@ -1688,11 +1689,14 @@ public class GameScreen implements Screen {
         inventory.save(data);
         staffUI.save(data);
 
-        if (mergeBoard.hasSlot1()) data.mergeSlot1 = mergeBoard.getSlot1Element().name();
-        if (mergeBoard.hasSlot2()) data.mergeSlot2 = mergeBoard.getSlot2Element().name();
-        if (mergeBoard.hasResult()) data.mergeResult = mergeBoard.getResultElement().name();
+        if (mergeBoard.hasSlot1())
+            data.mergeSlot1 = mergeBoard.getSlot1Element().name();
+        if (mergeBoard.hasSlot2())
+            data.mergeSlot2 = mergeBoard.getSlot2Element().name();
+        if (mergeBoard.hasResult())
+            data.mergeResult = mergeBoard.getResultElement().name();
 
-        this.save(data); 
+        this.save(data);
 
         data.pillars.clear();
         for (Pillar p : pillars) {
@@ -1715,12 +1719,16 @@ public class GameScreen implements Screen {
             staffUI.load(data);
             if (staffUI.hasOrb()) {
                 int idx = staffUI.getEquippedElement().ordinal();
-                player.setStaffOrbModel(new com.badlogic.gdx.graphics.g3d.ModelInstance(orbModels[idx]), staffUI.getEquippedElement());
+                player.setStaffOrbModel(new com.badlogic.gdx.graphics.g3d.ModelInstance(orbModels[idx]),
+                        staffUI.getEquippedElement());
             }
 
-            if (data.mergeSlot1 != null) mergeBoard.setSlot1Element(Element.valueOf(data.mergeSlot1));
-            if (data.mergeSlot2 != null) mergeBoard.setSlot2Element(Element.valueOf(data.mergeSlot2));
-            if (data.mergeResult != null) mergeBoard.setResultElement(Element.valueOf(data.mergeResult));
+            if (data.mergeSlot1 != null)
+                mergeBoard.setSlot1Element(Element.valueOf(data.mergeSlot1));
+            if (data.mergeSlot2 != null)
+                mergeBoard.setSlot2Element(Element.valueOf(data.mergeSlot2));
+            if (data.mergeResult != null)
+                mergeBoard.setResultElement(Element.valueOf(data.mergeResult));
 
             this.load(data);
 
@@ -1742,7 +1750,7 @@ public class GameScreen implements Screen {
         data.globalRangeMult = this.globalRangeMult;
         data.globalAttackSpeedMult = this.globalAttackSpeedMult;
         data.staffAuraRadius = this.staffAuraRadius;
-        
+
         data.acquiredAugments.clear();
         for (AcquiredAugment aug : this.acquiredAugments) {
             data.acquiredAugments.add(aug.id);
@@ -2050,7 +2058,8 @@ public class GameScreen implements Screen {
         waveManager.update(delta);
 
         if (!waveManager.isWaveInProgress() && !waveManager.areAllWavesComplete()) {
-            if (waveManager.getCurrentWave() > 0 && waveManager.getCurrentWave() % 10 == 0 && !waveManager.hasShownAugmentForWave(waveManager.getCurrentWave())) {
+            if (waveManager.getCurrentWave() > 0 && waveManager.getCurrentWave() % 10 == 0
+                    && !waveManager.hasShownAugmentForWave(waveManager.getCurrentWave())) {
                 showAugmentSelection();
                 waveManager.setShownAugmentForWave(waveManager.getCurrentWave(), true);
                 saveGameState();
