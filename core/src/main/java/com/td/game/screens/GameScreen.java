@@ -2382,6 +2382,11 @@ public class GameScreen implements Screen {
                 if (isPillarPanelVisible()) {
                     int panelButton = getPillarPanelButton(screenX, flippedY);
                     if (panelButton == 0) {
+                        Element removed = selectedPillar.removeOrb();
+                        if (removed != null) {
+                            // If inventory is full, orb is lost on sell.
+                            inventory.addOrb(removed);
+                        }
                         economyManager.earn(selectedPillar.getType().getPrice() / 2);
                         pillars.removeValue(selectedPillar, true);
                         selectedPillar = null;
