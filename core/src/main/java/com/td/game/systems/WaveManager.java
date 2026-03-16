@@ -16,6 +16,17 @@ import com.td.game.utils.ModelFactory;
 public class WaveManager implements Disposable {
     private static final int MAX_WAVES = 50;
     private static final int PHOTO_EMPTY_TILES_BETWEEN_ENEMIES = 0;
+    private static final Element[] ENEMY_ELEMENTS = {
+            Element.FIRE,
+            Element.WATER,
+            Element.EARTH,
+            Element.AIR,
+            Element.STEAM,
+            Element.ICE,
+            Element.POISON,
+            Element.LIGHT,
+            Element.LIFE
+    };
 
     private int currentWave;
     private int enemiesSpawned;
@@ -204,7 +215,7 @@ public class WaveManager implements Disposable {
             enemy.setVisualScaleMultiplier(1.2f);
         }
 
-        Element randomElement = Element.values()[MathUtils.random(Element.values().length - 1)];
+        Element randomElement = ENEMY_ELEMENTS[MathUtils.random(ENEMY_ELEMENTS.length - 1)];
         enemy.setElement(randomElement);
 
         Gdx.app.log("WaveManager", String.format("Created enemy: %s, Health: %.0f, Element: %s",
