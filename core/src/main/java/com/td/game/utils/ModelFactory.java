@@ -168,8 +168,9 @@ public class ModelFactory implements Disposable {
                 return modelBuilder.createSphere(0.5f, 0.5f, 0.5f, 16, 16, 
                     new Material(ColorAttribute.createDiffuse(steamColor), new BlendingAttribute(0.6f)), attributes);
             case POISON:
-                // Poison: Purple projectile
-                return modelBuilder.createSphere(0.5f, 0.5f, 0.5f, 16, 16, new Material(ColorAttribute.createDiffuse(color)), attributes);
+                // Poison: Purple-green gradient sphere with transparency
+                return modelBuilder.createSphere(0.5f, 0.5f, 0.5f, 16, 16, 
+                    new Material(ColorAttribute.createDiffuse(color), new BlendingAttribute(0.7f)), attributes);
             case LIFE:
                 // Life: Green orb
                 return createOrbModel(color);

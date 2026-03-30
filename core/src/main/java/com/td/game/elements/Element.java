@@ -12,7 +12,7 @@ public enum Element {
     
     STEAM("Steam", "☁️", 0.7f, 0.7f, 0.7f), 
     ICE("Ice", "❄️", 0.4f, 0.9f, 1f), 
-    POISON("Poison", "☠️", 0.2f, 0.8f, 0.2f), 
+    POISON("Poison", "☠️", 0.6f, 0.4f, 0.5f), 
     LIGHT("Light", "✨", 1f, 1f, 0.8f), 
     GOLD("Gold", "💰", 1f, 0.84f, 0f), 
     LIFE("Life", "🌿", 0.3f, 0.9f, 0.4f); 

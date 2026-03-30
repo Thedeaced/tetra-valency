@@ -3122,8 +3122,8 @@ public class GameScreen implements Screen {
                 target.applyFreeze(2f);
                 break;
             case POISON:
-                target.applyPoison(5f, damage * 0.1f, 1);
-                target.applyRegenBlock(5f);
+                target.applyPoison(5.1f, damage * 0.15f, 1);
+                target.applyRegenBlock(5.1f);
                 break;
             case STEAM:
                 float hpPercent = target.getHealth() / target.getMaxHealth();

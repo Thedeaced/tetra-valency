@@ -57,6 +57,9 @@ public class Enemy implements Disposable {
     protected float poisonTimer;
     protected float poisonDamage;
     protected int poisonStacks;
+    protected float poisonFlashTimer;
+    protected float poisonDamageInterval;
+    protected float poisonDamageCounter;
 
     protected float rootTimer;
     protected float rootSlowMultiplier;
@@ -105,6 +108,9 @@ public class Enemy implements Disposable {
         this.poisonTimer = 0;
         this.poisonDamage = 0;
         this.poisonStacks = 0;
+        this.poisonFlashTimer = 0;
+        this.poisonDamageInterval = 0;
+        this.poisonDamageCounter = 0;
         this.rootTimer = 0;
         this.rootSlowMultiplier = 1f;
         this.rootArmorBonus = 0;
@@ -349,6 +355,28 @@ public class Enemy implements Disposable {
             modelInstance.transform.scl(modelScaleMultiplier * visualScaleMultiplier);
             modelInstance.transform.rotate(Vector3.Y, rotation + 180f);
 
+            // Apply poison flash effect
+            if (poisonFlashTimer > 0) {
+                for (int i = 0; i < modelInstance.materials.size; i++) {
+                    com.badlogic.gdx.graphics.g3d.Material mat = modelInstance.materials.get(i);
+                    com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute ca = (com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute) 
+                        mat.get(com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute.Diffuse);
+                    if (ca != null) {
+                        ca.color.set(0.8f, 0.2f, 0.8f, 1f); // Poison purple flash
+                    }
+                }
+            } else if (element != null) {
+                // Reset to original color
+                for (int i = 0; i < modelInstance.materials.size; i++) {
+                    com.badlogic.gdx.graphics.g3d.Material mat = modelInstance.materials.get(i);
+                    com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute ca = (com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute) 
+                        mat.get(com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute.Diffuse);
+                    if (ca != null) {
+                        ca.color.set(element.getR(), element.getG(), element.getB(), 1f);
+                    }
+                }
+            }
+
             modelInstance.calculateTransforms();
         }
     }
@@ -381,11 +409,21 @@ public class Enemy implements Disposable {
 
         if (poisonTimer > 0) {
             poisonTimer -= deltaTime;
+            poisonFlashTimer -= deltaTime;
+            poisonDamageCounter += deltaTime;
 
-            float totalPoisonDamage = poisonDamage * poisonStacks * deltaTime;
-            takeDamage(totalPoisonDamage);
+            // Poison damage every 1.7 seconds
+            if (poisonDamageCounter >= poisonDamageInterval) {
+                float totalPoisonDamage = poisonDamage * poisonStacks;
+                takeDamage(totalPoisonDamage);
+                poisonDamageCounter = 0;
+                poisonFlashTimer = 0.1f; // Flash for 0.1 seconds
+            }
+
             if (poisonTimer <= 0) {
                 poisonStacks = 0;
+                poisonFlashTimer = 0;
+                poisonDamageCounter = 0;
             }
         }
 
@@ -494,6 +532,10 @@ public class Enemy implements Disposable {
         this.poisonTimer = Math.max(this.poisonTimer, duration);
         this.poisonDamage = damagePerSecond;
         this.poisonStacks = Math.min(this.poisonStacks + stacks, 10);
+        this.poisonDamageInterval = 1.7f; // Damage every 1.7 seconds
+        if (this.poisonTimer == duration) {
+            this.poisonDamageCounter = 0; // Reset counter when applying new poison
+        }
     }
 
     public void applyRoot(float duration, float slowAmount, float armorBonus) {
