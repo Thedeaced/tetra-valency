@@ -261,6 +261,16 @@ public class WaveManager implements Disposable {
         this.currentWave = currentWave;
     }
 
+    public void jumpToWave(int targetWave) {
+        this.currentWave = Math.max(0, targetWave - 1);
+        this.enemiesSpawned = 0;
+        this.enemiesInWave = 0;
+        this.spawnTimer = 0f;
+        this.spawnInterval = 0f;
+        this.waveInProgress = false;
+        this.allWavesComplete = false;
+    }
+
     public boolean isWaveInProgress() {
         return waveInProgress;
     }
