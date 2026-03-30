@@ -118,7 +118,8 @@ public class CreditsScreen implements Screen {
         lines.add(new CreditLine("Spinning Coin on Table sound effect by Universfield", "https://pixabay.com/sound-effects/", false));
         lines.add(new CreditLine("success sound effect by freesound_community", "https://pixabay.com/sound-effects/", false));
         lines.add(new CreditLine("Wood Surface Single Coin Payout sound effect by floraphonic", "https://pixabay.com/sound-effects/", false));
-        
+        lines.add(new CreditLine("take-it sound effect by freesound_community", "https://pixabay.com/sound-effects/", false));
+
 
 
         lines.add(new CreditLine("3D Models", "", true));

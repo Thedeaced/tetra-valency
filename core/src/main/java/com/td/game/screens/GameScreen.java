@@ -2047,6 +2047,7 @@ public class GameScreen implements Screen {
             return;
 
         int picked = option == 1 ? augmentOptionA : augmentOptionB;
+        game.audio.playAugmentPick();
         applyAugment(picked);
         acquiredAugments.add(new AcquiredAugment(picked));
         augmentChoiceActive = false;
