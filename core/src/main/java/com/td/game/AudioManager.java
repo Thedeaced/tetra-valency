@@ -20,6 +20,7 @@ public class AudioManager {
     private Sound errorSound;
     private Sound pauseToggleSound;
     private Sound speedToggleSound;
+    private Sound waveCompleteSound;
     private float musicVolume;
     private float soundVolume;
 
@@ -52,6 +53,11 @@ public class AudioManager {
         FileHandle speedToggleFile = resolveAsset("audio/sfx/speed_toggle.ogg");
         if (speedToggleFile.exists()) {
             speedToggleSound = Gdx.audio.newSound(speedToggleFile);
+        }
+
+        FileHandle waveCompleteFile = resolveAsset("audio/sfx/wave_complete.ogg");
+        if (waveCompleteFile.exists()) {
+            waveCompleteSound = Gdx.audio.newSound(waveCompleteFile);
         }
     }
 
@@ -102,6 +108,12 @@ public class AudioManager {
     public void playSpeedToggle() {
         if (speedToggleSound != null) {
             speedToggleSound.play(soundVolume * 2.4f);
+        }
+    }
+
+    public void playWaveComplete() {
+        if (waveCompleteSound != null) {
+            waveCompleteSound.play(soundVolume * 2.5f);
         }
     }
 
@@ -179,6 +191,10 @@ public class AudioManager {
         if (speedToggleSound != null) {
             speedToggleSound.dispose();
             speedToggleSound = null;
+        }
+        if (waveCompleteSound != null) {
+            waveCompleteSound.dispose();
+            waveCompleteSound = null;
         }
     }
 

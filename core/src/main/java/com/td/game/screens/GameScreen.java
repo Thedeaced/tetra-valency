@@ -2285,7 +2285,11 @@ public class GameScreen implements Screen {
         buildMenu.updateHover(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
 
         // Update WaveManager
+        boolean wasWaveInProgress = waveManager.isWaveInProgress();
         waveManager.update(delta);
+        if (wasWaveInProgress && !waveManager.isWaveInProgress() && waveManager.getCurrentWave() > 0) {
+            game.audio.playWaveComplete();
+        }
 
         if (!waveManager.isWaveInProgress() && !waveManager.areAllWavesComplete()) {
             if (waveManager.getCurrentWave() > 0 && waveManager.getCurrentWave() % 10 == 0
