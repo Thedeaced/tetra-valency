@@ -73,6 +73,9 @@ public class Enemy implements Disposable {
     protected float regenBlockTimer;
 
     protected float knockbackDistance;
+    protected Vector3 knockbackVelocity;
+    protected float knockbackDuration;
+    protected float knockbackTimer;
 
     public Enemy(float maxHealth, float speed, int reward) {
         this.maxHealth = maxHealth;
@@ -112,6 +115,9 @@ public class Enemy implements Disposable {
         this.greedMultiplier = 1f;
         this.regenBlockTimer = 0;
         this.knockbackDistance = 0;
+        this.knockbackVelocity = new Vector3();
+        this.knockbackDuration = 0;
+        this.knockbackTimer = 0;
     }
 
     public void setModel(Model model) {
@@ -251,6 +257,20 @@ public class Enemy implements Disposable {
         if (freezeTimer > 0) {
             updateModelPosition();
             return;
+        }
+
+        // Handle knockback movement
+        if (knockbackTimer > 0) {
+            knockbackTimer -= deltaTime;
+            position.add(knockbackVelocity.cpy().scl(deltaTime));
+            
+            // If knockback ends, reset velocity
+            if (knockbackTimer <= 0) {
+                knockbackVelocity.setZero();
+            }
+            
+            updateModelPosition();
+            return; // Skip normal movement during knockback
         }
 
         boolean endReached = isMovingBackwards ? currentWaypointIndex < 0 : currentWaypointIndex >= waypoints.size;
@@ -506,14 +526,22 @@ public class Enemy implements Disposable {
 
     public void applyKnockback(float distance) {
         this.knockbackDistance = distance;
-        // Apply knockback immediately
-        if (currentWaypointIndex > 0 && distance > 0) {
-            // Move back along path
-            int stepsBack = (int) (distance / 2f);
-            currentWaypointIndex = Math.max(0, currentWaypointIndex - stepsBack);
-            if (currentWaypointIndex < waypoints.size) {
-                position.set(waypoints.get(currentWaypointIndex));
+        
+        if (waypoints != null && waypoints.size > 0 && distance > 0) {
+            // Calculate backward direction (towards previous waypoint)
+            Vector3 backwardDirection;
+            if (currentWaypointIndex > 0) {
+                backwardDirection = waypoints.get(currentWaypointIndex - 1).cpy().sub(position).nor();
+            } else {
+                // Default backward direction if no previous waypoint
+                backwardDirection = new Vector3(-1, 0, 0);
             }
+            
+            // Set smooth knockback parameters
+            float knockbackForce = distance * 8f; // Speed multiplier for smooth animation
+            knockbackVelocity.set(backwardDirection).scl(knockbackForce);
+            knockbackDuration = distance / knockbackForce; // Time to reach destination
+            knockbackTimer = knockbackDuration;
         }
     }
 
