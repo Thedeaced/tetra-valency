@@ -7,7 +7,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
-import com.td.game.combat.LightningDamage;
+import com.td.game.combat.LightAttack;
 import com.td.game.elements.Element;
 import com.td.game.entities.Enemy;
 import com.td.game.utils.ModelFactory;
@@ -148,7 +148,7 @@ public class Pillar implements Disposable {
 
         // LIGHT: Damage scales with target's current HP (higher HP -> higher hit)
         if (currentElement == Element.LIGHT) {
-            damage = LightningDamage.scaleByCurrentHp(damage, target);
+            damage = LightAttack.scaleByCurrentHp(damage, target);
         }
 
         // Spawn Projectile
