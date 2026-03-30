@@ -83,6 +83,7 @@ public class GameScreen implements Screen {
     private Texture hudLifeIconTexture;
     private Texture hudGoldIconTexture;
     private Texture hudInfoIconTexture;
+    private Texture poisonBurstTexture;
     private Texture pauseMenuBackgroundTexture;
     private Model gateModel;
     private Model coreSphereModel;
@@ -252,6 +253,7 @@ public class GameScreen implements Screen {
         hudLifeIconTexture = new Texture(resolveAsset("ui/hud_life_icon.png"));
         hudGoldIconTexture = new Texture(resolveAsset("ui/hud_currency_gold.png"));
         hudInfoIconTexture = new Texture(resolveAsset("ui/hud_info_icon.png"));
+        poisonBurstTexture = new Texture(resolveAsset("attack/poison.png"));
         pauseMenuBackgroundTexture = new Texture(resolveAsset("ui/main_menu_bg.png"));
         elementInfoPanelTexture = loadFirstExistingTexture(
                 new String[] { "ui/element_info_panel.png", "assets/ui/element_info_panel.png" });
@@ -556,6 +558,8 @@ public class GameScreen implements Screen {
         }
         uiBatch.end();
 
+        renderPoisonBurstEffects(mapAreaWidth, screenHeight);
+
         renderMinimalHud(screenWidth, screenHeight, mapAreaWidth);
         renderMessages(screenWidth, screenHeight);
 
@@ -594,6 +598,43 @@ public class GameScreen implements Screen {
         renderMessages(screenWidth, screenHeight);
         renderConsoleOverlay(screenWidth, screenHeight);
 
+    }
+
+    private void renderPoisonBurstEffects(int mapAreaWidth, int screenHeight) {
+        if (poisonBurstTexture == null) {
+            return;
+        }
+
+        uiBatch.begin();
+        for (com.td.game.entities.Enemy enemy : waveManager.getActiveEnemies()) {
+            if (!enemy.isAlive() || !enemy.isPoisonBurstActive()) {
+                continue;
+            }
+
+            Vector3 enemyPos = enemy.getPosition();
+            float yOffset = enemy.isFlying() ? 3.4f : 2.8f;
+            Vector3 screenPos = camera.project(new Vector3(enemyPos.x, enemyPos.y + yOffset, enemyPos.z));
+
+            if (screenPos.z < 0f || screenPos.z > 1f || screenPos.x < 0f || screenPos.x > mapAreaWidth || screenPos.y < 0f
+                    || screenPos.y > screenHeight) {
+                continue;
+            }
+
+            float progress = enemy.getPoisonBurstProgress();
+            float eased = MathUtils.sin(progress * MathUtils.PI * 0.5f);
+
+            Vector3 baseScreen = camera.project(new Vector3(enemyPos.x, enemyPos.y, enemyPos.z));
+            Vector3 topScreen = camera.project(new Vector3(enemyPos.x, enemyPos.y + (enemy.isFlying() ? 2.2f : 1.6f), enemyPos.z));
+            float enemyPixelSize = Math.max(28f * uiScale, Math.abs(topScreen.y - baseScreen.y));
+            float drawSize = enemyPixelSize * (0.45f + 0.75f * eased);
+
+            float alpha = 1f - progress;
+            uiBatch.setColor(1f, 1f, 1f, alpha);
+            uiBatch.draw(poisonBurstTexture, screenPos.x - drawSize * 0.5f, screenPos.y - drawSize * 0.5f, drawSize,
+                    drawSize);
+        }
+        uiBatch.setColor(Color.WHITE);
+        uiBatch.end();
     }
 
     private void renderConsoleOverlay(int screenWidth, int screenHeight) {
@@ -2910,6 +2951,8 @@ public class GameScreen implements Screen {
             mapAreaBackgroundTexture.dispose();
         if (hudInfoIconTexture != null)
             hudInfoIconTexture.dispose();
+        if (poisonBurstTexture != null)
+            poisonBurstTexture.dispose();
         if (pauseMenuBackgroundTexture != null)
             pauseMenuBackgroundTexture.dispose();
         if (gateModel != null)
