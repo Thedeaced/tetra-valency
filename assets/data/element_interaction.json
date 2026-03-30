@@ -1,0 +1,99 @@
+{
+  "elemental_combat_system": {
+    "description": "Circular element vulnerability system. Each element is weak to the previous element in the cycle and strong against the next. Gold element has special rules.",
+    "element_order": [
+      "FIRE",
+      "WATER", 
+      "EARTH",
+      "AIR",
+      "STEAM",
+      "ICE",
+      "POISON",
+      "LIGHT",
+      "LIFE"
+    ],
+    "relationships": [
+      {
+        "element": "FIRE",
+        "strong_against": ["WATER"],
+        "weak_against": ["LIFE"],
+        "damage_multiplier_strong": 1.5,
+        "damage_multiplier_weak": 0.5,
+        "notes": "Position 0 in cycle - weak from LIFE (8), strong vs WATER (1)"
+      },
+      {
+        "element": "WATER",
+        "strong_against": ["EARTH"],
+        "weak_against": ["FIRE"],
+        "damage_multiplier_strong": 1.5,
+        "damage_multiplier_weak": 0.5,
+        "notes": "Position 1 in cycle - weak from FIRE (0), strong vs EARTH (2)"
+      },
+      {
+        "element": "EARTH",
+        "strong_against": ["AIR"],
+        "weak_against": ["WATER"],
+        "damage_multiplier_strong": 1.5,
+        "damage_multiplier_weak": 0.5,
+        "notes": "Position 2 in cycle - weak from WATER (1), strong vs AIR (3)"
+      },
+      {
+        "element": "AIR",
+        "strong_against": ["STEAM"],
+        "weak_against": ["EARTH"],
+        "damage_multiplier_strong": 1.5,
+        "damage_multiplier_weak": 0.5,
+        "notes": "Position 3 in cycle - weak from EARTH (2), strong vs STEAM (4)"
+      },
+      {
+        "element": "STEAM",
+        "strong_against": ["ICE"],
+        "weak_against": ["AIR"],
+        "damage_multiplier_strong": 1.5,
+        "damage_multiplier_weak": 0.5,
+        "notes": "Position 4 in cycle - weak from AIR (3), strong vs ICE (5)"
+      },
+      {
+        "element": "ICE",
+        "strong_against": ["POISON"],
+        "weak_against": ["STEAM"],
+        "damage_multiplier_strong": 1.5,
+        "damage_multiplier_weak": 0.5,
+        "notes": "Position 5 in cycle - weak from STEAM (4), strong vs POISON (6)"
+      },
+      {
+        "element": "POISON",
+        "strong_against": ["LIGHT"],
+        "weak_against": ["ICE"],
+        "damage_multiplier_strong": 1.5,
+        "damage_multiplier_weak": 0.5,
+        "notes": "Position 6 in cycle - weak from ICE (5), strong vs LIGHT (7)"
+      },
+      {
+        "element": "LIGHT",
+        "strong_against": ["LIFE"],
+        "weak_against": ["POISON"],
+        "damage_multiplier_strong": 1.5,
+        "damage_multiplier_weak": 0.5,
+        "notes": "Position 7 in cycle - weak from POISON (6), strong vs LIFE (8)"
+      },
+      {
+        "element": "LIFE",
+        "strong_against": ["FIRE"],
+        "weak_against": ["LIGHT"],
+        "damage_multiplier_strong": 1.5,
+        "damage_multiplier_weak": 0.5,
+        "notes": "Position 8 in cycle - weak from LIGHT (7), strong vs FIRE (0)"
+      },
+      {
+        "element": "GOLD",
+        "strong_against": [],
+        "weak_against": ["FIRE", "WATER", "EARTH", "AIR", "STEAM", "ICE", "POISON", "LIGHT", "LIFE"],
+        "damage_multiplier_strong": 1.0,
+        "damage_multiplier_weak": 0.75,
+        "gold_multiplier": 2.0,
+        "notes": "Takes 25% reduced damage from all elements. Grants 100% more gold when defeated (2x multiplier). Does not attack, so no damage multiplier applied to outgoing attacks."
+      }
+    ]
+  }
+}

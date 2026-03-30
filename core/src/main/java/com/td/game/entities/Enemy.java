@@ -407,10 +407,15 @@ public class Enemy implements Disposable {
         float armorReduction = armor / (armor + 100f);
         float actualDamage = damage * (1f - armorReduction);
 
-        // Element damage multiplier
+        // Element damage multiplier - circular system with weak/strong relationships
         if (attackerElement != null && this.element != null) {
             float multiplier = com.td.game.utils.CombatUtils.getDamageMultiplier(attackerElement, this.element);
             actualDamage *= multiplier;
+        }
+
+        // Gold element special: takes 25% less damage from all elements
+        if (this.element == Element.GOLD) {
+            actualDamage *= 0.75f;
         }
 
         // Drench effect: increases lightning/light damage

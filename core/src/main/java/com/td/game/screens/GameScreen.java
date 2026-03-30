@@ -28,7 +28,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonValue;
-import com.badlogic.gdx.files.FileHandle;
 import com.td.game.TowerDefenseGame;
 import com.td.game.elements.Element;
 import com.td.game.inventory.Inventory;
@@ -38,13 +37,6 @@ import com.td.game.pillars.PillarType;
 import com.td.game.player.Player;
 import com.td.game.systems.EconomyManager;
 import com.td.game.systems.WaveManager;
-import com.td.game.entities.Projectile;
-import com.td.game.entities.Effect;
-import com.td.game.entities.Enemy;
-import com.td.game.entities.DemonEnemy;
-import com.td.game.entities.GolemEnemy;
-import com.td.game.entities.BatEnemy;
-import com.td.game.entities.PinkBlobEnemy;
 import com.td.game.ui.ContextualMenuPanel;
 import com.td.game.ui.GameShop;
 import com.td.game.ui.MergeBoard;
@@ -2250,7 +2242,12 @@ public class GameScreen implements Screen {
             }
             if (!enemy.isAlive() && !enemy.hasReachedEnd()) {
                 if (!enemy.isAllied()) {
-                    economyManager.earn(enemy.getReward());
+                    int goldEarned = enemy.getReward();
+                    // Gold element grants 100% bonus (2x multiplier)
+                    if (enemy.getElement() == Element.GOLD) {
+                        goldEarned = (int)(goldEarned * 2f);
+                    }
+                    economyManager.earn(goldEarned);
                     
                     // Check for LIFE pillar revive
                     for (Pillar p : pillars) {
