@@ -2357,6 +2357,7 @@ public class GameScreen implements Screen {
             }
             if (!enemy.isAlive() && !enemy.hasReachedEnd()) {
                 if (!enemy.isAllied()) {
+                    game.audio.playEnemyDeath();
                     int goldEarned = enemy.getReward();
                     // Gold element grants 100% bonus (2x multiplier)
                     if (enemy.getElement() == Element.GOLD) {

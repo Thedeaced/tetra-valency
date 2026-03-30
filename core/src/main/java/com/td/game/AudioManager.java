@@ -5,6 +5,8 @@ import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.Timer;
 import com.td.game.map.GameMap;
 
@@ -27,8 +29,12 @@ public class AudioManager {
     private Sound loseSound;
     private Sound towerAttackBasicSound;
     private Sound coreHitSound;
+    private Sound enemyDeathSound;
     private float musicVolume;
     private float soundVolume;
+    private long enemyDeathLastPlayedMs;
+    private long enemyDeathBurstWindowStartMs;
+    private int enemyDeathBurstCount;
 
     public void init() {
         prefs = Gdx.app.getPreferences(PREFS_NAME);
@@ -89,6 +95,11 @@ public class AudioManager {
         FileHandle coreHitFile = resolveAsset("audio/sfx/core_hit.ogg");
         if (coreHitFile.exists()) {
             coreHitSound = Gdx.audio.newSound(coreHitFile);
+        }
+
+        FileHandle enemyDeathFile = resolveAsset("audio/sfx/enemy_death.ogg");
+        if (enemyDeathFile.exists()) {
+            enemyDeathSound = Gdx.audio.newSound(enemyDeathFile);
         }
     }
 
@@ -186,6 +197,38 @@ public class AudioManager {
                 }, 1.5f);
             }
         }
+    }
+
+    public void playEnemyDeath() {
+        if (enemyDeathSound == null) {
+            return;
+        }
+
+        long nowMs = TimeUtils.millis();
+        if (nowMs - enemyDeathLastPlayedMs < 65L) {
+            return;
+        }
+
+        if (nowMs - enemyDeathBurstWindowStartMs > 360L) {
+            enemyDeathBurstWindowStartMs = nowMs;
+            enemyDeathBurstCount = 0;
+        }
+        enemyDeathBurstCount++;
+
+        float playChance = 1f;
+        if (enemyDeathBurstCount > 4) {
+            playChance = 0.58f;
+        }
+        if (enemyDeathBurstCount > 8) {
+            playChance = 0.28f;
+        }
+
+        if (!MathUtils.randomBoolean(playChance)) {
+            return;
+        }
+
+        enemyDeathLastPlayedMs = nowMs;
+        enemyDeathSound.play(soundVolume * 1.9f);
     }
 
     public void playMenuMusic() {
@@ -286,6 +329,10 @@ public class AudioManager {
         if (coreHitSound != null) {
             coreHitSound.dispose();
             coreHitSound = null;
+        }
+        if (enemyDeathSound != null) {
+            enemyDeathSound.dispose();
+            enemyDeathSound = null;
         }
     }
 
