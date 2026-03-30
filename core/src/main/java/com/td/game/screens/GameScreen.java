@@ -2749,6 +2749,7 @@ public class GameScreen implements Screen {
                         }
                         economyManager.earn(selectedPillar.getType().getPrice() / 2);
                         game.audio.playGoldGain();
+                        game.audio.playSell();
                         pillars.removeValue(selectedPillar, true);
                         selectedPillar = null;
                         awaitingPillarOrbSelection = false;

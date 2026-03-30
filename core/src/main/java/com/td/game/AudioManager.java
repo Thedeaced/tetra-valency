@@ -32,6 +32,7 @@ public class AudioManager {
     private Sound enemyDeathSound;
     private Sound goldGainSound;
     private Sound buySuccessSound;
+    private Sound sellSound;
     private float musicVolume;
     private float soundVolume;
     private long enemyDeathLastPlayedMs;
@@ -41,6 +42,7 @@ public class AudioManager {
     private long goldGainBurstWindowStartMs;
     private int goldGainBurstCount;
     private long buySuccessLastPlayedMs;
+    private long sellLastPlayedMs;
 
     public void init() {
         prefs = Gdx.app.getPreferences(PREFS_NAME);
@@ -116,6 +118,11 @@ public class AudioManager {
         FileHandle buySuccessFile = resolveAsset("audio/sfx/buy_success.ogg");
         if (buySuccessFile.exists()) {
             buySuccessSound = Gdx.audio.newSound(buySuccessFile);
+        }
+
+        FileHandle sellFile = resolveAsset("audio/sfx/sell.ogg");
+        if (sellFile.exists()) {
+            sellSound = Gdx.audio.newSound(sellFile);
         }
     }
 
@@ -293,6 +300,20 @@ public class AudioManager {
         buySuccessSound.play(soundVolume * 2.0f);
     }
 
+    public void playSell() {
+        if (sellSound == null) {
+            return;
+        }
+
+        long nowMs = TimeUtils.millis();
+        if (nowMs - sellLastPlayedMs < 90L) {
+            return;
+        }
+
+        sellLastPlayedMs = nowMs;
+        sellSound.play(soundVolume * 2.0f);
+    }
+
     public void playMenuMusic() {
         if (menuMusic != null && menuMusic.isPlaying()) {
             return;
@@ -403,6 +424,10 @@ public class AudioManager {
         if (buySuccessSound != null) {
             buySuccessSound.dispose();
             buySuccessSound = null;
+        }
+        if (sellSound != null) {
+            sellSound.dispose();
+            sellSound = null;
         }
     }
 
