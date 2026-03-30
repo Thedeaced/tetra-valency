@@ -540,12 +540,13 @@ public class Enemy implements Disposable {
     }
 
     public void applyPoison(float duration, float damagePerSecond, int stacks) {
+        boolean wasPoisoned = this.poisonTimer > 0f;
         this.poisonTimer = Math.max(this.poisonTimer, duration);
         this.poisonDamage = damagePerSecond;
         this.poisonStacks = Math.min(this.poisonStacks + stacks, 10);
         this.poisonDamageInterval = 1.7f; // Damage every 1.7 seconds
-        if (this.poisonTimer == duration) {
-            this.poisonDamageCounter = 0; // Reset counter when applying new poison
+        if (!wasPoisoned) {
+            this.poisonDamageCounter = 0; // Start first tick cadence only on first application
         }
     }
 
