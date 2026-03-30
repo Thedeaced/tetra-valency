@@ -1,5 +1,6 @@
 package com.td.game.entities;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -15,7 +16,7 @@ import com.td.game.utils.Constants;
 
 public class Enemy implements Disposable {
 
-    private static final float POISON_BURST_DURATION = 0.28f;
+    private static final float POISON_BURST_DURATION = 0.42f;
 
     protected Vector3 position;
     protected float health;
@@ -409,13 +410,17 @@ public class Enemy implements Disposable {
             takeDamage(burnDamage * deltaTime);
         }
 
+        if (poisonFlashTimer > 0) {
+            // Visual timers should run in real frame time, independent from sim speed (1x/2x/8x/32x)
+            poisonFlashTimer -= Gdx.graphics.getDeltaTime();
+        }
+
         if (drenchTimer > 0) {
             drenchTimer -= deltaTime;
         }
 
         if (poisonTimer > 0) {
             poisonTimer -= deltaTime;
-            poisonFlashTimer -= deltaTime;
             poisonDamageCounter += deltaTime;
 
             // Poison damage every 1.7 seconds
@@ -423,7 +428,7 @@ public class Enemy implements Disposable {
                 float totalPoisonDamage = poisonDamage * poisonStacks;
                 takeDamage(totalPoisonDamage);
                 poisonDamageCounter = 0;
-                poisonFlashTimer = Math.max(poisonFlashTimer, POISON_BURST_DURATION);
+                poisonFlashTimer = POISON_BURST_DURATION;
             }
 
             if (poisonTimer <= 0) {

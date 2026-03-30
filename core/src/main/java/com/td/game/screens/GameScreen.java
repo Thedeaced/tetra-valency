@@ -613,7 +613,8 @@ public class GameScreen implements Screen {
 
             Vector3 enemyPos = enemy.getPosition();
             float yOffset = enemy.isFlying() ? 3.4f : 2.8f;
-            Vector3 screenPos = camera.project(new Vector3(enemyPos.x, enemyPos.y + yOffset, enemyPos.z));
+                Vector3 screenPos = camera.project(new Vector3(enemyPos.x, enemyPos.y + yOffset, enemyPos.z), 0, 0,
+                    mapAreaWidth, screenHeight);
 
             if (screenPos.z < 0f || screenPos.z > 1f || screenPos.x < 0f || screenPos.x > mapAreaWidth || screenPos.y < 0f
                     || screenPos.y > screenHeight) {
@@ -623,10 +624,12 @@ public class GameScreen implements Screen {
             float progress = enemy.getPoisonBurstProgress();
             float eased = MathUtils.sin(progress * MathUtils.PI * 0.5f);
 
-            Vector3 baseScreen = camera.project(new Vector3(enemyPos.x, enemyPos.y, enemyPos.z));
-            Vector3 topScreen = camera.project(new Vector3(enemyPos.x, enemyPos.y + (enemy.isFlying() ? 2.2f : 1.6f), enemyPos.z));
-            float enemyPixelSize = Math.max(28f * uiScale, Math.abs(topScreen.y - baseScreen.y));
-            float drawSize = enemyPixelSize * (0.45f + 0.75f * eased);
+                Vector3 baseScreen = camera.project(new Vector3(enemyPos.x, enemyPos.y, enemyPos.z), 0, 0, mapAreaWidth,
+                    screenHeight);
+                Vector3 topScreen = camera.project(new Vector3(enemyPos.x, enemyPos.y + (enemy.isFlying() ? 2.2f : 1.6f), enemyPos.z),
+                    0, 0, mapAreaWidth, screenHeight);
+                float enemyPixelSize = Math.max(52f * uiScale, Math.abs(topScreen.y - baseScreen.y));
+                float drawSize = enemyPixelSize * (0.9f + 1.4f * eased);
 
             float alpha = 1f - progress;
             uiBatch.setColor(1f, 1f, 1f, alpha);
