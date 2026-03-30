@@ -97,39 +97,52 @@ public class CreditsScreen implements Screen {
         Array<CreditLine> lines = new Array<>();
 
         lines.add(new CreditLine("Fonts", "", true));
-        lines.add(new CreditLine("Paytone One", "https://fonts.google.com/specimen/Paytone+One", false));
+        lines.add(new CreditLine("- Paytone One", "https://fonts.google.com/specimen/Paytone+One", false));
 
         lines.add(new CreditLine("Music", "", true));
-        lines.add(new CreditLine("Background Music (source link pending)", "", false));
+        lines.add(new CreditLine("- Background Music", "https://pixabay.com/music/", false));
 
         lines.add(new CreditLine("SFX", "", true));
-        lines.add(new CreditLine("Click sound effect by Universfield", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("Error sound effect by Lesiakover", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("Casual Click Pop UI 3 sound effect by floraphonic", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("High Speed sound effect by Universfield", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("Game Level Complete sound effect by Universfield", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("Game Start sound effect by FoxBoy Tails", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("Gaming victory sound effect by EAGLAXLE", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("Marimba Lose sound effect by Universfield", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("fire magic (6) sound effect by Yodguard", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("Crushing shells of eggs sound effect by AudioPapkin", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("Damage blowhole sound effect by Prmodrai", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("Dramatic Death Collapse sound effect by Universfield", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("Spinning Coin on Table sound effect by Universfield", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("success sound effect by freesound_community", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("Wood Surface Single Coin Payout sound effect by floraphonic", "https://pixabay.com/sound-effects/", false));
-        lines.add(new CreditLine("take-it sound effect by freesound_community", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("- Source Website", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("SFX Authors", "", true));
+        lines.add(new CreditLine("- Universfield", "", false));
+        lines.add(new CreditLine("- Lesiakover", "", false));
+        lines.add(new CreditLine("- floraphonic", "", false));
+        lines.add(new CreditLine("- FoxBoy Tails", "", false));
+        lines.add(new CreditLine("- EAGLAXLE", "", false));
+        lines.add(new CreditLine("- Yodguard", "", false));
+        lines.add(new CreditLine("- AudioPapkin", "", false));
+        lines.add(new CreditLine("- Prmodrai", "", false));
+        lines.add(new CreditLine("- freesound_community", "", false));
 
-
+        lines.add(new CreditLine("SFX Files Used", "", true));
+        lines.add(new CreditLine("- ui_click.ogg", "", false));
+        lines.add(new CreditLine("- ui_error.ogg", "", false));
+        lines.add(new CreditLine("- pause_toggle.ogg", "", false));
+        lines.add(new CreditLine("- speed_toggle.ogg", "", false));
+        lines.add(new CreditLine("- wave_start.ogg", "", false));
+        lines.add(new CreditLine("- wave_complete.ogg", "", false));
+        lines.add(new CreditLine("- victory.ogg", "", false));
+        lines.add(new CreditLine("- lose.ogg", "", false));
+        lines.add(new CreditLine("- tower_attack_basic.ogg", "", false));
+        lines.add(new CreditLine("- core_hit.ogg", "", false));
+        lines.add(new CreditLine("- enemy_hit.ogg", "", false));
+        lines.add(new CreditLine("- enemy_death.ogg", "", false));
+        lines.add(new CreditLine("- gold_gain.ogg", "", false));
+        lines.add(new CreditLine("- buy_success.ogg", "", false));
+        lines.add(new CreditLine("- sell.ogg", "", false));
+        lines.add(new CreditLine("- augment_pick.ogg", "", false));
 
         lines.add(new CreditLine("3D Models", "", true));
-        lines.add(new CreditLine("3D Models (source links pending)", "", false));
+        lines.add(new CreditLine("- Quaternius", "https://poly.pizza/u/Quaternius", false));
 
-        lines.add(new CreditLine("Tools/Libraries", "", true));
-        lines.add(new CreditLine("GitHub", "https://github.com/", false));
-        lines.add(new CreditLine("libGDX", "https://libgdx.com/", false));
-        lines.add(new CreditLine("Gradle", "https://gradle.org/", false));
-        lines.add(new CreditLine("Dreamlo", "http://dreamlo.com/", false));
+        lines.add(new CreditLine("Systems and Libraries", "", true));
+        lines.add(new CreditLine("- Java", "https://www.java.com/", false));
+        lines.add(new CreditLine("- GitHub", "https://github.com/", false));
+        lines.add(new CreditLine("- libGDX", "https://libgdx.com/", false));
+        lines.add(new CreditLine("- LWJGL", "https://www.lwjgl.org/", false));
+        lines.add(new CreditLine("- Gradle", "https://gradle.org/", false));
+        lines.add(new CreditLine("- Dreamlo", "http://dreamlo.com/", false));
 
         return lines;
     }
@@ -209,7 +222,7 @@ public class CreditsScreen implements Screen {
         y = drawCenteredLine(titleFont, "Credits", y, Color.WHITE, 1.2f);
         y -= SECTION_GAP * 0.7f;
 
-        y = drawCenteredLine(font, "Team Members", y, Color.WHITE, 1f);
+        y = drawCenteredLine(font, "Group Members", y, Color.WHITE, 1f);
         for (String member : teamMembers) {
             y = drawCenteredLine(font, member, y, Color.WHITE, 1f);
         }
