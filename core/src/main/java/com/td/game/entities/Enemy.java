@@ -165,7 +165,11 @@ public class Enemy implements Disposable {
 
     public void render(ModelBatch modelBatch, Environment environment) {
         if (alive && modelInstance != null) {
-            if (hitTimer > 0) {
+            if (poisonFlashTimer > 0) {
+                for (com.badlogic.gdx.graphics.g3d.Material mat : modelInstance.materials) {
+                    mat.set(com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute.createEmissive(0.75f, 0.15f, 0.85f, 1f));
+                }
+            } else if (hitTimer > 0) {
                 for (com.badlogic.gdx.graphics.g3d.Material mat : modelInstance.materials) {
                     mat.set(com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute.createEmissive(Color.WHITE));
                 }
@@ -417,7 +421,7 @@ public class Enemy implements Disposable {
                 float totalPoisonDamage = poisonDamage * poisonStacks;
                 takeDamage(totalPoisonDamage);
                 poisonDamageCounter = 0;
-                poisonFlashTimer = 0.1f; // Flash for 0.1 seconds
+                poisonFlashTimer = Math.max(poisonFlashTimer, 0.28f); // Keep visible even at high simulation speeds
             }
 
             if (poisonTimer <= 0) {
