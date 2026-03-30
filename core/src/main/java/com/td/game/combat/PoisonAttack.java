@@ -30,4 +30,13 @@ public class PoisonAttack implements AttackAction {
             target.applyPoison(poisonDuration, poisonDamage, 1);
         }
     }
+
+    public static void applyOnHit(Enemy target, float impactDamage) {
+        if (target == null || !target.isAlive()) {
+            return;
+        }
+        target.takeDamage(impactDamage, Element.POISON);
+        target.applyPoison(5.1f, impactDamage * 0.15f, 1);
+        target.applyRegenBlock(5.1f);
+    }
 }

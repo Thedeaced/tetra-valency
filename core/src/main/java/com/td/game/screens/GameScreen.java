@@ -30,6 +30,9 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonValue;
 import com.td.game.TowerDefenseGame;
+import com.td.game.combat.LifeAttack;
+import com.td.game.combat.PoisonAttack;
+import com.td.game.combat.SteamAttack;
 import com.td.game.elements.Element;
 import com.td.game.inventory.Inventory;
 import com.td.game.map.GameMap;
@@ -2297,13 +2300,8 @@ public class GameScreen implements Screen {
                     economyManager.earn(goldEarned);
                     
                     // Check for LIFE pillar revive
-                    for (Pillar p : pillars) {
-                        if (p.isActive() && p.getCurrentElement() == Element.LIFE) {
-                            if (p.getPosition().dst(enemy.getPosition()) < p.getAttackRange()) {
-                                reviveAsAlly(enemy);
-                                break;
-                            }
-                        }
+                    if (LifeAttack.canRevive(pillars, enemy)) {
+                        reviveAsAlly(enemy);
                     }
                 }
             }
@@ -3144,7 +3142,9 @@ public class GameScreen implements Screen {
         Element element = proj.getElement();
         float damage = proj.getDamage();
 
-        target.takeDamage(damage, element);
+        if (element != Element.POISON && element != Element.STEAM) {
+            target.takeDamage(damage, element);
+        }
 
         // Spawn impact effect
         spawnEffect(target.getPosition(), element, 0.5f, 1.0f);
@@ -3173,13 +3173,10 @@ public class GameScreen implements Screen {
                 target.applyFreeze(2f);
                 break;
             case POISON:
-                target.applyPoison(5.1f, damage * 0.15f, 1);
-                target.applyRegenBlock(5.1f);
+                PoisonAttack.applyOnHit(target, damage);
                 break;
             case STEAM:
-                float hpPercent = target.getHealth() / target.getMaxHealth();
-                float kbDist = 1.0f + (1.0f - hpPercent) * 3.0f;
-                target.applyKnockback(kbDist);
+                SteamAttack.applyOnHit(target, damage);
                 break;
             default:
                 break;

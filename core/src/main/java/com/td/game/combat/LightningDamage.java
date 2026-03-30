@@ -26,4 +26,13 @@ public class LightningDamage implements AttackAction {
         float scaledDamage = baseDamage + (currentHpDamage * target.getHealth());
         target.takeDamage(scaledDamage, attackerElement);
     }
+
+    public static float scaleByCurrentHp(float baseDamage, Enemy target) {
+        if (target == null) {
+            return baseDamage;
+        }
+        float hpPercent = target.getHealth() / Math.max(1f, target.getMaxHealth());
+        float lightMultiplier = 0.5f + (hpPercent * 2.0f);
+        return baseDamage * lightMultiplier;
+    }
 }

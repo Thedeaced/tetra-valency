@@ -33,4 +33,14 @@ public class SteamAttack implements AttackAction {
             target.applyKnockback(scaledKnockback);
         }
     }
+
+    public static void applyOnHit(Enemy target, float impactDamage) {
+        if (target == null || !target.isAlive()) {
+            return;
+        }
+        target.takeDamage(impactDamage, Element.STEAM);
+        float hpPercent = target.getHealth() / Math.max(1f, target.getMaxHealth());
+        float kbDist = 1.0f + (1.0f - hpPercent) * 3.0f;
+        target.applyKnockback(kbDist);
+    }
 }
