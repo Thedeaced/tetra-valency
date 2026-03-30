@@ -25,7 +25,13 @@ public class AudioManager {
         musicVolume = prefs.getFloat(KEY_MUSIC_VOL, 0.7f);
         soundVolume = prefs.getFloat(KEY_SOUND_VOL, 1f);
 
-        FileHandle clickFile = resolveAsset("audio/clicked.mp3");
+        FileHandle clickFile = resolveAsset("audio/sfx/ui_click.ogg");
+        if (!clickFile.exists()) {
+            clickFile = resolveAsset("audio/sfx/ui_click_primary.ogg");
+        }
+        if (!clickFile.exists()) {
+            clickFile = resolveAsset("audio/clicked.mp3");
+        }
         if (clickFile.exists()) {
             clickSound = Gdx.audio.newSound(clickFile);
         }

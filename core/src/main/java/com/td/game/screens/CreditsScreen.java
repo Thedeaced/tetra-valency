@@ -116,7 +116,8 @@ public class CreditsScreen implements Screen {
 
         items.add(new CreditItem("Music", "Background Music (source link pending)", "", IconKind.NONE));
 
-        items.add(new CreditItem("SFX", "Sound Effects (source links pending)", "", IconKind.NONE));
+        items.add(new CreditItem("SFX", "UI click sound effect by universfield", "https://pixabay.com/sound-effects/", IconKind.NONE));
+        items.add(new CreditItem("SFX", "Used as UI click effect", "", IconKind.NONE));
 
         items.add(new CreditItem("3D Models", "3D Models (source links pending)", "", IconKind.NONE));
 
@@ -174,12 +175,12 @@ public class CreditsScreen implements Screen {
         }
 
         shapes.begin(ShapeRenderer.ShapeType.Filled);
-        drawRect(rootPanel, 34f, new Color(0.89f, 0.67f, 0.26f, 0.94f));
+        drawRect(rootPanel, new Color(0.89f, 0.67f, 0.26f, 0.94f));
 
-        drawRect(namesPanel, 16f, new Color(0.95f, 0.79f, 0.42f, 0.42f));
-        drawRect(creditsViewport, 16f, new Color(0.95f, 0.79f, 0.42f, 0.28f));
+        drawRect(namesPanel, new Color(0.95f, 0.79f, 0.42f, 0.42f));
+        drawRect(creditsViewport, new Color(0.95f, 0.79f, 0.42f, 0.28f));
 
-        drawRect(backBtn, backBtn.height * 0.5f, new Color(0.56f, 0.43f, 0.33f, 1f));
+        drawRect(backBtn, new Color(0.56f, 0.43f, 0.33f, 1f));
 
         float sepY = namesPanel.y + namesPanel.height + 12f;
         shapes.setColor(new Color(0.72f, 0.55f, 0.30f, 1f));
@@ -229,7 +230,7 @@ public class CreditsScreen implements Screen {
         batch.end();
     }
 
-    private void drawRect(Rectangle r, float radius, Color c) {
+    private void drawRect(Rectangle r, Color c) {
         shapes.setColor(c);
         shapes.rect(r.x, r.y, r.width, r.height);
     }
