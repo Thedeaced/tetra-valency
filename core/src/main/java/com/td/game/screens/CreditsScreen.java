@@ -30,6 +30,7 @@ public class CreditsScreen implements Screen {
 
     private static final float LINE_GAP = 28f;
     private static final float SECTION_BREAK = 26f;
+    private static final float SYSTEMS_BLOCK_DROP = 34f;
     private static final Color HEADING_COLOR = new Color(0.86f, 0.15f, 0.15f, 1f);
     private static final Color BODY_COLOR = Color.WHITE;
     private static final Color CONTRIBUTOR_COLOR = new Color(0.45f, 0.82f, 1f, 1f);
@@ -112,9 +113,11 @@ public class CreditsScreen implements Screen {
         leftY = drawHeading("Fonts", leftX, leftY);
         leftY = drawLine("- Paytone One", leftX, leftY, "https://fonts.google.com/specimen/Paytone+One", BODY_COLOR);
 
-        leftY -= (SECTION_BREAK * 2f);
+        leftY -= (SECTION_BREAK * 2f) + SYSTEMS_BLOCK_DROP;
+        drawLeft(font, "------------------------------", leftX, leftY, BODY_COLOR);
+        leftY -= (LINE_GAP * 0.55f);
         leftY = drawHeading("Systems Used", leftX, leftY);
-        float systemsStartY = leftY - (SECTION_BREAK * 0.8f);
+        float systemsStartY = leftY;
         float leftSystemsY = systemsStartY;
         leftSystemsY = drawSystemItem("Java", "https://www.java.com/", leftX, leftSystemsY);
         leftSystemsY = drawSystemItem("GitHub", "https://github.com/", leftX, leftSystemsY);
@@ -142,6 +145,7 @@ public class CreditsScreen implements Screen {
         rightY = drawHeading("3D Models", rightX, rightY);
         rightY = drawLine("- Quaternius", rightX, rightY, "https://poly.pizza/u/Quaternius", CONTRIBUTOR_COLOR);
 
+        drawLeft(font, "------------------------------", rightX, systemsStartY + (LINE_GAP * 0.55f), BODY_COLOR);
         float rightSystemsY = systemsStartY;
         rightSystemsY = drawSystemItem("Microsoft Paint", "https://apps.microsoft.com/detail/9pcfs5b6t72h", rightX, rightSystemsY);
         rightSystemsY = drawSystemItem("TTSMaker", "https://ttsmaker.com/", rightX, rightSystemsY);
