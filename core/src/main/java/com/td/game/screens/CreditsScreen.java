@@ -44,6 +44,8 @@ public class CreditsScreen implements Screen {
     private float creditsScroll;
     private float creditsContentHeight;
     private static final float SCROLL_STEP = 34f;
+    private static final float CREDITS_TOP_PADDING = 12f;
+    private static final float CREDITS_BOTTOM_PADDING = 72f;
 
     private enum IconKind {
         NONE, GITHUB, LIBGDX, GRADLE, DREAMLO
@@ -120,9 +122,12 @@ public class CreditsScreen implements Screen {
         items.add(new CreditItem("SFX", "Used as pause toggle effect", "", IconKind.NONE));
         items.add(new CreditItem("SFX", "High Speed sound effect by Universfield", "https://pixabay.com/sound-effects/", IconKind.NONE));
         items.add(new CreditItem("SFX", "Used as speed toggle effect", "", IconKind.NONE));
-        items.add(new CreditItem("3D Models", "3D Models (source links pending)", "", IconKind.NONE));
         items.add(new CreditItem("SFX", "Game Level Complete sound effect by Universfield", "https://pixabay.com/sound-effects/", IconKind.NONE));
         items.add(new CreditItem("SFX", "Used as wave complete effect", "", IconKind.NONE));
+        items.add(new CreditItem("SFX", "Game Start sound effect by FoxBoy Tails", "https://pixabay.com/sound-effects/", IconKind.NONE));
+        items.add(new CreditItem("SFX", "Used as wave start effect", "", IconKind.NONE));
+        items.add(new CreditItem("3D Models", "3D Models (source links pending)", "", IconKind.NONE));
+        
         items.add(new CreditItem("Tools/Libraries", "GitHub", "https://github.com/", IconKind.GITHUB));
         items.add(new CreditItem("Tools/Libraries", "libGDX", "https://libgdx.com/", IconKind.LIBGDX));
         items.add(new CreditItem("Tools/Libraries", "Gradle", "https://gradle.org/", IconKind.GRADLE));
@@ -137,8 +142,8 @@ public class CreditsScreen implements Screen {
         rootPanel = new Rectangle(w * 0.18f, h * 0.06f, w * 0.64f, h * 0.88f);
         backBtn = new Rectangle(rootPanel.x + 22f, rootPanel.y + 22f, 140f, 48f);
 
-        float namesPanelY = rootPanel.y + rootPanel.height * 0.52f;
-        float namesPanelH = rootPanel.height * 0.18f;
+        float namesPanelY = rootPanel.y + rootPanel.height * 0.56f;
+        float namesPanelH = rootPanel.height * 0.14f;
         namesPanel = new Rectangle(rootPanel.x + 40f, namesPanelY,
                 rootPanel.width - 80f, namesPanelH);
 
@@ -250,7 +255,7 @@ public class CreditsScreen implements Screen {
         linkEntries.clear();
 
         float x = creditsViewport.x + 12f;
-        float y = creditsViewport.y + creditsViewport.height - 12f - creditsScroll;
+        float y = creditsViewport.y + creditsViewport.height - CREDITS_TOP_PADDING - creditsScroll;
         float iconSize = 18f;
         float categoryGap = 22f;
         float labelGap = 20f;
@@ -318,7 +323,7 @@ public class CreditsScreen implements Screen {
             }
         }
 
-        return total + 18f;
+        return total + CREDITS_TOP_PADDING + CREDITS_BOTTOM_PADDING;
     }
 
     private float getMaxCreditsScroll() {
