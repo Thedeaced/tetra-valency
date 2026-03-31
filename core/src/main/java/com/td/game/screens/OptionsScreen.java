@@ -188,6 +188,19 @@ public class OptionsScreen implements Screen {
         drawPill(editBindingsBtn, new Color(0.56f, 0.43f, 0.33f, 1f));
         drawRect(backBtn, backBtn.height * 0.5f, new Color(0.56f, 0.43f, 0.33f, 1f));
 
+        if (bindingsOpen) {
+            drawRect(bindingsPanel, 24f, new Color(0.86f, 0.64f, 0.22f, 0.98f));
+            shapes.setColor(new Color(0.56f, 0.43f, 0.33f, 1f));
+            for (int i = 0; i < controlActions.length; i++) {
+                Rectangle pill = controlKeyPills[i];
+                float y = pill.y - bindingsScroll;
+                if (y + pill.height < bindingsViewport.y || y > bindingsViewport.y + bindingsViewport.height) {
+                    continue;
+                }
+                shapes.rect(pill.x, y, pill.width, pill.height);
+            }
+        }
+
         shapes.setColor(new Color(0.82f, 0.82f, 0.82f, 1f));
         shapes.rect(musicTrack.x, musicTrack.y, musicTrack.width, musicTrack.height);
         shapes.rect(soundTrack.x, soundTrack.y, soundTrack.width, soundTrack.height);
@@ -215,13 +228,7 @@ public class OptionsScreen implements Screen {
                 editBindingsBtn.width);
         drawCentered("Back", backBtn.x, backBtn.y + backBtn.height * 0.67f, backBtn.width);
         if (bindingsOpen) {
-            shapes.begin(ShapeRenderer.ShapeType.Filled);
-            drawRect(bindingsPanel, 24f, new Color(0.86f, 0.64f, 0.22f, 0.98f));
-            shapes.end();
-
-            batch.begin();
             drawCentered("Keybindings", bindingsPanel.x, bindingsPanel.y + bindingsPanel.height - 18f, bindingsPanel.width);
-            batch.end();
 
             for (int i = 0; i < controlActions.length; i++) {
                 KeyBindings.Action action = controlActions[i];
@@ -231,7 +238,6 @@ public class OptionsScreen implements Screen {
                     continue;
                 }
                 String label = getActionLabel(action);
-                batch.begin();
                 glyph.setText(font, label);
                 font.draw(batch, label, bindingsViewport.x, y + pill.height * 0.68f);
 
@@ -240,7 +246,6 @@ public class OptionsScreen implements Screen {
                     keyName = "...";
                 }
                 drawCentered(keyName, pill.x, y + pill.height * 0.68f, pill.width);
-                batch.end();
             }
         }
 
