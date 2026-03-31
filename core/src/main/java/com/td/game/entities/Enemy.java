@@ -95,6 +95,7 @@ public class Enemy implements Disposable {
     protected Vector3 knockbackVelocity;
     protected float knockbackDuration;
     protected float knockbackTimer;
+    protected float contactDamageCooldown;
 
     public Enemy(float maxHealth, float speed, int reward) {
         this.maxHealth = maxHealth;
@@ -143,6 +144,7 @@ public class Enemy implements Disposable {
         this.knockbackVelocity = new Vector3();
         this.knockbackDuration = 0;
         this.knockbackTimer = 0;
+        this.contactDamageCooldown = 0f;
     }
 
     public void setModel(Model model) {
@@ -512,6 +514,13 @@ public class Enemy implements Disposable {
                 regenReductionStacks = 0;
             }
         }
+
+        if (contactDamageCooldown > 0f) {
+            contactDamageCooldown -= deltaTime;
+            if (contactDamageCooldown < 0f) {
+                contactDamageCooldown = 0f;
+            }
+        }
     }
 
     public void takeDamage(float damage) {
@@ -850,6 +859,14 @@ public class Enemy implements Disposable {
 
     public void setAllied(boolean allied) {
         this.isAllied = allied;
+    }
+
+    public boolean canDealContactDamage() {
+        return contactDamageCooldown <= 0f;
+    }
+
+    public void triggerContactDamageCooldown(float seconds) {
+        contactDamageCooldown = Math.max(contactDamageCooldown, seconds);
     }
 
     public void setMovingBackwards(boolean movingBackwards) {

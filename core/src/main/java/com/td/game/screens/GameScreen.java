@@ -212,6 +212,9 @@ public class GameScreen implements Screen {
     private float pillarPanelW;
     private float pillarPanelH;
     private static final float PILLAR_PANEL_BTN_H = 30f;
+    private static final float LIFE_ALLY_COLLISION_RADIUS = Constants.TILE_SIZE * 0.35f;
+    private static final float LIFE_ALLY_COLLISION_DAMAGE_FACTOR = 0.20f;
+    private static final float LIFE_ALLY_COLLISION_COOLDOWN = 0.6f;
 
     private float moveDelay = 0.2f;
     private float moveTimer = 0;
@@ -2748,6 +2751,8 @@ public class GameScreen implements Screen {
                 }
             }
         }
+
+        handleLifeAllyCollisions();
         waveManager.removeDeadEnemies();
 
         
@@ -3741,6 +3746,42 @@ public class GameScreen implements Screen {
                 mat.set(TextureAttribute.createDiffuse(lifeRecallTexture));
             }
             mat.set(ColorAttribute.createEmissive(0.06f, 0.30f, 0.10f, 1f));
+        }
+    }
+
+    private void handleLifeAllyCollisions() {
+        com.badlogic.gdx.utils.Array<com.td.game.entities.Enemy> enemies = waveManager.getActiveEnemies();
+        if (enemies == null || enemies.size == 0) {
+            return;
+        }
+
+        for (int i = 0; i < enemies.size; i++) {
+            com.td.game.entities.Enemy ally = enemies.get(i);
+            if (ally == null || !ally.isAlive() || !ally.isAllied()) {
+                continue;
+            }
+            if (!ally.canDealContactDamage()) {
+                continue;
+            }
+
+            com.td.game.entities.Enemy target = null;
+            for (int j = 0; j < enemies.size; j++) {
+                com.td.game.entities.Enemy enemy = enemies.get(j);
+                if (enemy == null || enemy == ally || !enemy.isAlive() || enemy.isAllied()) {
+                    continue;
+                }
+                if (ally.getPosition().dst(enemy.getPosition()) <= LIFE_ALLY_COLLISION_RADIUS) {
+                    target = enemy;
+                    break;
+                }
+            }
+
+            if (target != null) {
+                float damage = Math.max(1f, ally.getMaxHealth() * LIFE_ALLY_COLLISION_DAMAGE_FACTOR);
+                target.takeDamage(damage, Element.LIFE);
+                ally.triggerContactDamageCooldown(LIFE_ALLY_COLLISION_COOLDOWN);
+                spawnEffect(target.getPosition(), Element.LIFE, 0.4f, 1.0f);
+            }
         }
     }
 
