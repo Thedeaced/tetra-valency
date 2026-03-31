@@ -160,29 +160,7 @@ public class GameScreen implements Screen {
         }
     }
 
-    private static class ConsoleLayout {
-        final Rectangle panel = new Rectangle();
-        final Rectangle livesBox = new Rectangle();
-        final Rectangle livesInputBox = new Rectangle();
-        final Rectangle goldBox = new Rectangle();
-        final Rectangle goldInputBox = new Rectangle();
-        final Rectangle waveBox = new Rectangle();
-        final Rectangle augmentBox = new Rectangle();
-        final Rectangle augmentInputBox = new Rectangle();
-        final Rectangle[] buttons;
-        float titleY;
-        float livesLabelY;
-        float goldLabelY;
-        float waveLabelY;
-        float augmentLabelY;
-
-        ConsoleLayout(int buttonCount) {
-            buttons = new Rectangle[buttonCount];
-            for (int i = 0; i < buttonCount; i++) {
-                buttons[i] = new Rectangle();
-            }
-        }
-    }
+    private final ConsoleMenu consoleMenu = new ConsoleMenu();
 
     private float globalTimer;
     private Array<AcquiredAugment> acquiredAugments;
@@ -750,215 +728,28 @@ public class GameScreen implements Screen {
     }
 
     private void renderConsoleOverlay(int screenWidth, int screenHeight) {
-        if (!consoleOpen) {
-            return;
-        }
         String[] buttonLabels = getConsoleButtonLabels();
-        ConsoleLayout layout = getConsoleLayout(screenWidth, screenHeight, buttonLabels.length);
-        float defaultFontScale = uiScale * 0.54f;
-        float defaultLargeFontScale = uiScale * 0.72f;
-
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-
-        uiShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        uiShapeRenderer.setColor(0.05f, 0.05f, 0.05f, 0.92f);
-        uiShapeRenderer.rect(layout.panel.x, layout.panel.y, layout.panel.width, layout.panel.height);
-        if (activeConsoleInput == CONSOLE_INPUT_LIVES) {
-            uiShapeRenderer.setColor(0.18f, 0.18f, 0.18f, 0.98f);
-        } else {
-            uiShapeRenderer.setColor(0.12f, 0.12f, 0.12f, 0.96f);
-        }
-        uiShapeRenderer.rect(layout.livesInputBox.x, layout.livesInputBox.y, layout.livesInputBox.width, layout.livesInputBox.height);
-        if (activeConsoleInput == CONSOLE_INPUT_WAVE) {
-            uiShapeRenderer.setColor(0.18f, 0.18f, 0.18f, 0.98f);
-        } else {
-            uiShapeRenderer.setColor(0.12f, 0.12f, 0.12f, 0.96f);
-        }
-        uiShapeRenderer.rect(layout.waveBox.x, layout.waveBox.y, layout.waveBox.width, layout.waveBox.height);
-        if (activeConsoleInput == CONSOLE_INPUT_GOLD) {
-            uiShapeRenderer.setColor(0.18f, 0.18f, 0.18f, 0.98f);
-        } else {
-            uiShapeRenderer.setColor(0.12f, 0.12f, 0.12f, 0.96f);
-        }
-        uiShapeRenderer.rect(layout.goldInputBox.x, layout.goldInputBox.y, layout.goldInputBox.width, layout.goldInputBox.height);
-        if (activeConsoleInput == CONSOLE_INPUT_AUGMENT) {
-            uiShapeRenderer.setColor(0.18f, 0.18f, 0.18f, 0.98f);
-        } else {
-            uiShapeRenderer.setColor(0.12f, 0.12f, 0.12f, 0.96f);
-        }
-        uiShapeRenderer.rect(layout.augmentInputBox.x, layout.augmentInputBox.y, layout.augmentInputBox.width, layout.augmentInputBox.height);
-        uiShapeRenderer.setColor(0.16f, 0.16f, 0.16f, 0.98f);
-        for (Rectangle button : layout.buttons) {
-            uiShapeRenderer.rect(button.x, button.y, button.width, button.height);
-        }
-        uiShapeRenderer.end();
-
-        uiShapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        uiShapeRenderer.setColor(0.95f, 0.95f, 0.95f, 1f);
-        uiShapeRenderer.rect(layout.panel.x, layout.panel.y, layout.panel.width, layout.panel.height);
-        uiShapeRenderer.rect(layout.livesInputBox.x, layout.livesInputBox.y, layout.livesInputBox.width, layout.livesInputBox.height);
-        uiShapeRenderer.rect(layout.goldInputBox.x, layout.goldInputBox.y, layout.goldInputBox.width, layout.goldInputBox.height);
-        uiShapeRenderer.rect(layout.waveBox.x, layout.waveBox.y, layout.waveBox.width, layout.waveBox.height);
-        uiShapeRenderer.rect(layout.augmentInputBox.x, layout.augmentInputBox.y, layout.augmentInputBox.width, layout.augmentInputBox.height);
-        for (Rectangle button : layout.buttons) {
-            uiShapeRenderer.rect(button.x, button.y, button.width, button.height);
-        }
-        uiShapeRenderer.end();
-
-        uiBatch.begin();
-        uiFontLarge.getData().setScale(uiScale * 0.54f);
-        uiFontLarge.setColor(Color.WHITE);
-        glyphLayout.setText(uiFontLarge, "CONSOLE MENU");
-        uiFontLarge.draw(uiBatch, glyphLayout,
-                layout.panel.x + (layout.panel.width - glyphLayout.width) * 0.5f,
-                layout.titleY);
-
-        uiFont.getData().setScale(uiScale * 0.50f);
-        uiFont.setColor(Color.WHITE);
-
-        String livesLabel = "HEALTH";
-        if (economyManager != null) {
-            livesLabel = "HEALTH (" + economyManager.getLives() + ")";
-        }
-        String livesPlaceholder = economyManager != null ? String.valueOf(economyManager.getLives()) : "";
-        drawConsoleFieldLabel(uiBatch, livesLabel, layout.livesLabelY, layout.livesInputBox);
-        drawConsoleInputField(uiBatch, layout.livesInputBox, consoleLivesInput, activeConsoleInput == CONSOLE_INPUT_LIVES,
-                livesPlaceholder);
-        drawConsoleWaveInput(uiBatch, layout);
-        String goldLabel = "GOLD";
-        if (economyManager != null) {
-            goldLabel = "GOLD (" + economyManager.getGold() + ")";
-        }
-        String goldPlaceholder = economyManager != null ? String.valueOf(economyManager.getGold()) : "";
-        drawConsoleFieldLabel(uiBatch, goldLabel, layout.goldLabelY, layout.goldInputBox);
-        drawConsoleInputField(uiBatch, layout.goldInputBox, consoleGoldInput, activeConsoleInput == CONSOLE_INPUT_GOLD,
-                goldPlaceholder);
-        drawConsoleFieldLabel(uiBatch, "AUGMENT ID", layout.augmentLabelY, layout.augmentInputBox);
-        drawConsoleInputField(uiBatch, layout.augmentInputBox, consoleAugmentInput,
-                activeConsoleInput == CONSOLE_INPUT_AUGMENT, "");
-
-        uiFontLarge.getData().setScale(uiScale * 0.44f);
-        for (int i = 0; i < buttonLabels.length; i++) {
-            Rectangle button = layout.buttons[i];
-            glyphLayout.setText(uiFontLarge, buttonLabels[i], Color.WHITE, button.width,
-                    com.badlogic.gdx.utils.Align.center, false);
-            float textY = button.y + button.height * 0.5f + glyphLayout.height * 0.5f;
-            uiFontLarge.draw(uiBatch, glyphLayout, button.x, textY);
-        }
-        uiBatch.end();
-
-        uiFont.getData().setScale(defaultFontScale);
-        uiFontLarge.getData().setScale(defaultLargeFontScale);
-    }
-
-    private ConsoleLayout getConsoleLayout(int screenWidth, int screenHeight, int buttonCount) {
-        ConsoleLayout layout = new ConsoleLayout(buttonCount);
-        float sideMargin = 24f * uiScale;
-        float topMargin = 64f * uiScale;
-        float bottomMargin = 0f;
-        float panelW = MathUtils.clamp(screenWidth * 0.185f, 210f * uiScale, 300f * uiScale);
-        float titleInset = 16f * uiScale;
-        float titleBlockH = 20f * uiScale;
-        float titleToFirstLabel = 28f * uiScale;
-        float inputBoxH = 22f * uiScale;
-        float labelToInputGap = 9f * uiScale;
-        float sectionGap = 10f * uiScale;
-        float buttonGap = 8f * uiScale;
-        float buttonH = 30f * uiScale;
-        float panelH = titleInset + titleBlockH + titleToFirstLabel
-                + (labelToInputGap + inputBoxH)
-                + (sectionGap + labelToInputGap + inputBoxH)
-                + (sectionGap + labelToInputGap + inputBoxH)
-                + (buttonCount * buttonH)
-                + ((buttonCount - 1) * buttonGap)
-                + (labelToInputGap + titleBlockH);
-        panelH = Math.min(panelH, screenHeight - topMargin - bottomMargin);
-        float panelX = sideMargin;
-        float panelY = screenHeight - panelH - topMargin;
-        layout.panel.set(panelX, panelY, panelW, panelH);
-
-        float innerPadding = 10f * uiScale;
-        float contentX = panelX + innerPadding;
-        float contentW = panelW - innerPadding * 2f;
-
-        layout.titleY = panelY + panelH - titleInset;
-        layout.livesLabelY = layout.titleY - titleToFirstLabel;
-        float livesInputY = layout.livesLabelY - labelToInputGap - inputBoxH;
-        layout.livesInputBox.set(contentX, livesInputY, contentW, inputBoxH);
-        layout.livesBox.set(contentX, livesInputY, contentW, inputBoxH);
-
-        layout.waveLabelY = layout.livesInputBox.y - sectionGap;
-        float waveBoxY = layout.waveLabelY - labelToInputGap - inputBoxH;
-        layout.waveBox.set(contentX, waveBoxY, contentW, inputBoxH);
-
-        layout.goldLabelY = layout.waveBox.y - sectionGap;
-        float goldInputY = layout.goldLabelY - labelToInputGap - inputBoxH;
-        layout.goldInputBox.set(contentX, goldInputY, contentW, inputBoxH);
-        layout.goldBox.set(contentX, goldInputY, contentW, inputBoxH);
-
-        float buttonY = layout.goldInputBox.y - buttonH;
-        for (Rectangle button : layout.buttons) {
-            button.set(contentX, buttonY, contentW, buttonH);
-            buttonY -= buttonH + buttonGap;
-        }
-
-        if (layout.buttons.length > 0) {
-            Rectangle addAugmentButton = layout.buttons[layout.buttons.length - 1];
-            float gap = 6f * uiScale;
-            float augmentInputW = Math.max(70f * uiScale, contentW * 0.36f);
-            float augmentButtonW = Math.max(90f * uiScale, contentW - augmentInputW - gap);
-            addAugmentButton.width = augmentButtonW;
-            layout.augmentInputBox.set(addAugmentButton.x + addAugmentButton.width + gap, addAugmentButton.y,
-                    augmentInputW, addAugmentButton.height);
-            layout.augmentBox.set(layout.augmentInputBox);
-            layout.augmentLabelY = layout.augmentInputBox.y + layout.augmentInputBox.height + labelToInputGap;
-        }
-
-        return layout;
-    }
-
-    private void drawConsoleStat(SpriteBatch batch, String label, String value, float labelY, Rectangle valueBox) {
-        glyphLayout.setText(uiFont, label, Color.WHITE, valueBox.width, com.badlogic.gdx.utils.Align.center, false);
-        uiFont.draw(batch, glyphLayout, valueBox.x, labelY);
-
-        uiFontLarge.getData().setScale(uiScale * 0.54f);
-        glyphLayout.setText(uiFontLarge, value, Color.WHITE, valueBox.width, com.badlogic.gdx.utils.Align.center, false);
-        float valueY = valueBox.y + valueBox.height * 0.5f + glyphLayout.height * 0.5f;
-        uiFontLarge.draw(batch, glyphLayout, valueBox.x, valueY);
-        uiFontLarge.getData().setScale(uiScale * 0.54f);
-    }
-
-    private void drawConsoleFieldLabel(SpriteBatch batch, String label, float labelY, Rectangle inputBox) {
-        glyphLayout.setText(uiFont, label, Color.WHITE, inputBox.width, com.badlogic.gdx.utils.Align.center, false);
-        uiFont.draw(batch, glyphLayout, inputBox.x, labelY);
-    }
-
-    private void drawConsoleWaveInput(SpriteBatch batch, ConsoleLayout layout) {
-        String label = "WAVE";
-        if (waveManager != null) {
-            label = "WAVE (" + waveManager.getCurrentWave() + ")";
-        }
-        drawConsoleFieldLabel(batch, label, layout.waveLabelY, layout.waveBox);
-
-        String placeholder = waveManager != null ? String.valueOf(waveManager.getCurrentWave()) : "";
-        drawConsoleInputField(batch, layout.waveBox, consoleWaveInput, activeConsoleInput == CONSOLE_INPUT_WAVE, placeholder);
-    }
-
-    private void drawConsoleInputField(SpriteBatch batch, Rectangle box, String value, boolean active, String placeholder) {
-        String displayValue = value;
-        if (displayValue == null) {
-            displayValue = "";
-        }
-        if (displayValue.isEmpty()) {
-            displayValue = placeholder;
-        }
-
-        uiFontLarge.getData().setScale(uiScale * 0.40f);
-        glyphLayout.setText(uiFontLarge, displayValue, Color.WHITE, box.width,
-                com.badlogic.gdx.utils.Align.center, false);
-        float valueY = box.y + box.height * 0.5f + glyphLayout.height * 0.5f;
-        uiFontLarge.draw(batch, glyphLayout, box.x, valueY);
+        consoleMenu.render(consoleOpen,
+                screenWidth,
+                screenHeight,
+                uiScale,
+                activeConsoleInput,
+                CONSOLE_INPUT_LIVES,
+                CONSOLE_INPUT_WAVE,
+                CONSOLE_INPUT_GOLD,
+                CONSOLE_INPUT_AUGMENT,
+                buttonLabels,
+                consoleLivesInput,
+                consoleWaveInput,
+                consoleGoldInput,
+                consoleAugmentInput,
+                economyManager,
+                waveManager,
+                uiBatch,
+                uiShapeRenderer,
+                uiFont,
+                uiFontLarge,
+                glyphLayout);
     }
 
     private void handleConsoleCommand(String rawCommand) {
@@ -1147,21 +938,15 @@ public class GameScreen implements Screen {
         if (!consoleOpen) {
             return -1;
         }
-        ConsoleLayout layout = getConsoleLayout(screenWidth, screenHeight, CONSOLE_BUTTON_COMMANDS.length);
-        for (int i = 0; i < layout.buttons.length; i++) {
-            Rectangle button = layout.buttons[i];
-            if (isInRect(screenX, flippedY, button.x, button.y, button.width, button.height)) {
-                return i;
-            }
-        }
-        return -1;
+        return consoleMenu.getButtonIndexAt(screenX, flippedY, screenWidth, screenHeight, uiScale,
+                CONSOLE_BUTTON_COMMANDS.length);
     }
 
     private boolean isInConsoleArea(int screenX, int flippedY, int screenWidth, int screenHeight) {
         if (!consoleOpen) {
             return false;
         }
-        ConsoleLayout layout = getConsoleLayout(screenWidth, screenHeight, CONSOLE_BUTTON_COMMANDS.length);
+        ConsoleMenu.Layout layout = consoleMenu.getLayout(screenWidth, screenHeight, uiScale, CONSOLE_BUTTON_COMMANDS.length);
         return isInRect(screenX, flippedY, layout.panel.x, layout.panel.y, layout.panel.width, layout.panel.height);
     }
 
@@ -1169,23 +954,13 @@ public class GameScreen implements Screen {
         if (!consoleOpen) {
             return CONSOLE_INPUT_NONE;
         }
-        ConsoleLayout layout = getConsoleLayout(screenWidth, screenHeight, CONSOLE_BUTTON_COMMANDS.length);
-        if (isInRect(screenX, flippedY, layout.livesInputBox.x, layout.livesInputBox.y,
-                layout.livesInputBox.width, layout.livesInputBox.height)) {
-            return CONSOLE_INPUT_LIVES;
-        }
-        if (isInRect(screenX, flippedY, layout.waveBox.x, layout.waveBox.y, layout.waveBox.width, layout.waveBox.height)) {
-            return CONSOLE_INPUT_WAVE;
-        }
-        if (isInRect(screenX, flippedY, layout.goldInputBox.x, layout.goldInputBox.y,
-                layout.goldInputBox.width, layout.goldInputBox.height)) {
-            return CONSOLE_INPUT_GOLD;
-        }
-        if (isInRect(screenX, flippedY, layout.augmentInputBox.x, layout.augmentInputBox.y,
-                layout.augmentInputBox.width, layout.augmentInputBox.height)) {
-            return CONSOLE_INPUT_AUGMENT;
-        }
-        return CONSOLE_INPUT_NONE;
+        return consoleMenu.getInputTargetAt(screenX, flippedY, screenWidth, screenHeight, uiScale,
+                CONSOLE_INPUT_NONE,
+                CONSOLE_INPUT_LIVES,
+                CONSOLE_INPUT_WAVE,
+                CONSOLE_INPUT_GOLD,
+                CONSOLE_INPUT_AUGMENT,
+                CONSOLE_BUTTON_COMMANDS.length);
     }
 
     private boolean handleConsoleKeyDown(int keycode) {
