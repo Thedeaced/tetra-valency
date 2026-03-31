@@ -2374,9 +2374,13 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 if (!enemy.isAllied()) {
                     game.audio.playEnemyDeath();
                     int goldEarned = enemy.getReward();
+                    Pillar killerPillar = enemy.getLastHitPillar();
                     
                     if (enemy.getElement() == Element.GOLD) {
                         goldEarned = (int)(goldEarned * 2f);
+                    }
+                    if (killerPillar != null) {
+                        goldEarned += killerPillar.getGoldCharmBonus(goldEarned);
                     }
                     economyManager.earn(goldEarned);
                     game.audio.playGoldGain();
@@ -3260,9 +3264,10 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
 
         Element element = proj.getElement();
         float damage = proj.getDamage();
+        Pillar sourcePillar = proj.getSourcePillar();
 
         if (element != Element.POISON && element != Element.STEAM) {
-            target.takeDamage(damage, element);
+            target.takeDamage(damage, element, sourcePillar);
         }
 
         
@@ -3274,7 +3279,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 
                 for (com.td.game.entities.Enemy e : waveManager.getActiveEnemies()) {
                     if (e != target && e.isAlive() && e.getPosition().dst(target.getPosition()) < 3.0f) {
-                        e.takeDamage(damage * 0.5f, element);
+                        e.takeDamage(damage * 0.5f, element, sourcePillar);
                     }
                 }
                 target.applyBurn(3f, damage * 0.2f);
@@ -3289,10 +3294,15 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 target.applyFreeze(2f);
                 break;
             case POISON:
-                PoisonAttack.applyOnHit(target, damage);
+                target.takeDamage(damage, Element.POISON, sourcePillar);
+                target.applyPoison(5.1f, damage * 0.15f, 1);
+                target.applyRegenBlock(5.1f);
                 break;
             case STEAM:
-                SteamAttack.applyOnHit(target, damage);
+                target.takeDamage(damage, Element.STEAM, sourcePillar);
+                float hpPercent = target.getHealth() / Math.max(1f, target.getMaxHealth());
+                float kbDist = 1.0f + (1.0f - hpPercent) * 3.0f;
+                target.applyKnockback(kbDist);
                 break;
             default:
                 break;
@@ -3426,6 +3436,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 float dmgBuff = 1f;
                 float spdBuff = 1f;
                 float rngBuff = 1f;
+                boolean goldCharm = false;
                 boolean poisonCharm = false;
                 boolean lifeCharm = false;
 
@@ -3439,16 +3450,19 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                             rngBuff = 1.05f;
                             spdBuff = 1.05f;
                             break;
+                        case GOLD: goldCharm = true; break;
                         case LIFE: lifeCharm = true; break; 
                         case POISON: poisonCharm = true; break; 
                         default: break;
                     }
                 }
                 p.setExternalMultipliers(dmgBuff, rngBuff, spdBuff);
+                p.setGoldCharmActive(goldCharm);
                 p.setPoisonCharmActive(poisonCharm);
                 p.setLifeCharmActive(lifeCharm);
             } else {
                 p.setExternalMultipliers(1f, 1f, 1f);
+                p.setGoldCharmActive(false);
                 p.setPoisonCharmActive(false);
                 p.setLifeCharmActive(false);
             }

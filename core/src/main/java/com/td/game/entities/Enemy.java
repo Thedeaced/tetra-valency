@@ -16,6 +16,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.td.game.elements.Element;
+import com.td.game.pillars.Pillar;
 import com.td.game.utils.Constants;
 
 public class Enemy implements Disposable {
@@ -96,6 +97,7 @@ public class Enemy implements Disposable {
     protected float knockbackDuration;
     protected float knockbackTimer;
     protected float contactDamageCooldown;
+    protected Pillar lastHitPillar;
 
     public Enemy(float maxHealth, float speed, int reward) {
         this.maxHealth = maxHealth;
@@ -145,6 +147,7 @@ public class Enemy implements Disposable {
         this.knockbackDuration = 0;
         this.knockbackTimer = 0;
         this.contactDamageCooldown = 0f;
+        this.lastHitPillar = null;
     }
 
     public void setModel(Model model) {
@@ -528,6 +531,10 @@ public class Enemy implements Disposable {
     }
 
     public void takeDamage(float damage, Element attackerElement) {
+        takeDamage(damage, attackerElement, null);
+    }
+
+    public void takeDamage(float damage, Element attackerElement, Pillar sourcePillar) {
         hitTimer = 0.1f;
 
         float armorReduction = armor / (armor + 100f);
@@ -567,6 +574,9 @@ public class Enemy implements Disposable {
 
         health -= actualDamage;
         if (actualDamage > 0f) {
+            if (sourcePillar != null) {
+                lastHitPillar = sourcePillar;
+            }
             playEnemyHitSfxThrottled();
         }
 
@@ -775,6 +785,10 @@ public class Enemy implements Disposable {
 
     public int getReward() {
         return Math.round(reward * greedMultiplier);
+    }
+
+    public Pillar getLastHitPillar() {
+        return lastHitPillar;
     }
 
     public float getHealth() {

@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
-import com.td.game.combat.AttackContext;
 import com.td.game.combat.EarthAttack;
 import com.td.game.combat.LightAttack;
 import com.td.game.elements.Element;
@@ -27,6 +26,7 @@ public class Pillar implements Disposable {
     private float bonusDamageMult = 1f;
     private float bonusRangeMult = 1f;
     private float bonusAttackSpeedMult = 1f;
+    private boolean goldCharmActive = false;
     private boolean poisonCharmActive = false;
     private boolean lifeCharmActive = false;
     private boolean lifeFrenzyReady = false;
@@ -126,7 +126,7 @@ public class Pillar implements Disposable {
             earthTickTimer += delta;
             while (earthTickTimer >= EarthAttack.TICK_INTERVAL) {
                 earthTickTimer -= EarthAttack.TICK_INTERVAL;
-                EarthAttack.applyQuakeInRange(new AttackContext(this, null, enemies, delta), getActualDamage());
+                applyEarthQuakeInRange(enemies);
             }
             return;
         } else {
@@ -197,6 +197,24 @@ public class Pillar implements Disposable {
         mi.transform.scl(0.5f);
         projectiles.add(new com.td.game.entities.Projectile(position.cpy().add(0, 2f, 0), target, currentElement, damage, 25f, mi,
             poisonCharmActive, lifeCharmActive, this));
+    }
+
+    private void applyEarthQuakeInRange(com.badlogic.gdx.utils.Array<com.td.game.entities.Enemy> enemies) {
+        if (enemies == null) {
+            return;
+        }
+
+        float attackRange = getAttackRange();
+        float damage = getActualDamage() * EarthAttack.DAMAGE_MULTIPLIER;
+        for (com.td.game.entities.Enemy enemy : enemies) {
+            if (enemy == null || !enemy.isAlive() || enemy.isAllied()) {
+                continue;
+            }
+            if (position.dst(enemy.getPosition()) <= attackRange) {
+                enemy.takeDamage(damage, currentElement, this);
+                enemy.applySlow(EarthAttack.SLOW_DURATION, EarthAttack.SLOW_MULTIPLIER);
+            }
+        }
     }
 
     private float getActualDamage() {
@@ -275,6 +293,21 @@ public class Pillar implements Disposable {
 
     public void setPoisonCharmActive(boolean poisonCharmActive) {
         this.poisonCharmActive = poisonCharmActive;
+    }
+
+    public void setGoldCharmActive(boolean goldCharmActive) {
+        this.goldCharmActive = goldCharmActive;
+    }
+
+    public boolean isGoldCharmActive() {
+        return goldCharmActive;
+    }
+
+    public int getGoldCharmBonus(int goldEarned) {
+        if (!goldCharmActive || goldEarned <= 0) {
+            return 0;
+        }
+        return Math.max(1, Math.round(goldEarned * 0.1f));
     }
 
     public void setLifeCharmActive(boolean lifeCharmActive) {
