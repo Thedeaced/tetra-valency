@@ -7,7 +7,7 @@ import com.badlogic.gdx.utils.ObjectMap;
 import com.td.game.input.KeyBindings;
 
 public class OptionsManager {
-    private static final String OPTIONS_PATH = "assets/saves/options.json";
+    private static final String OPTIONS_PATH = "saves/options.json";
     private static OptionsData cached;
 
     public static OptionsData get() {

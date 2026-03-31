@@ -109,7 +109,7 @@ public class IntroScreen implements Screen {
     }
 
     private void goToMainMenu() {
-        game.setScreen(new MainMenuScreen(game));
+        game.setScreen(new CinematicScreen(game));
         dispose();
     }
 
