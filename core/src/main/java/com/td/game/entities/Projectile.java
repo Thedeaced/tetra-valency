@@ -14,6 +14,7 @@ public class Projectile {
     private final float speed;
     private final Element element;
     private final float damage;
+    private final boolean iceCharmActive;
     private final boolean poisonCharmActive;
     private final boolean lifeCharmActive;
     private final Pillar sourcePillar;
@@ -23,7 +24,7 @@ public class Projectile {
     private ModelInstance modelInstance;
 
     public Projectile(Vector3 startPos, Enemy targetEnemy, Element element, float damage, float speed, ModelInstance modelInstance,
-            boolean poisonCharmActive, boolean lifeCharmActive, Pillar sourcePillar) {
+            boolean iceCharmActive, boolean poisonCharmActive, boolean lifeCharmActive, Pillar sourcePillar) {
         this.position = startPos.cpy();
         this.targetEnemy = targetEnemy;
         this.targetPos = targetEnemy.getPosition().cpy();
@@ -31,6 +32,7 @@ public class Projectile {
         this.damage = damage;
         this.speed = speed;
         this.modelInstance = modelInstance;
+        this.iceCharmActive = iceCharmActive;
         this.poisonCharmActive = poisonCharmActive;
         this.lifeCharmActive = lifeCharmActive;
         this.sourcePillar = sourcePillar;
@@ -88,6 +90,10 @@ public class Projectile {
 
     public float getDamage() {
         return damage;
+    }
+
+    public boolean isIceCharmActive() {
+        return iceCharmActive;
     }
 
     public boolean isPoisonCharmActive() {

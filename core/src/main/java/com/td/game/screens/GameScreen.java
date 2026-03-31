@@ -3308,6 +3308,10 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 break;
         }
 
+        if (proj.isIceCharmActive() && sourcePillar != null) {
+            sourcePillar.applyIceCharmFreeze(target);
+        }
+
         
         if (proj.isPoisonCharmActive()) {
             target.applyRegenReduction(5.1f, 0.40f, 1);
@@ -3437,6 +3441,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 float spdBuff = 1f;
                 float rngBuff = 1f;
                 boolean goldCharm = false;
+                boolean iceCharm = false;
                 boolean poisonCharm = false;
                 boolean lifeCharm = false;
 
@@ -3451,6 +3456,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                             spdBuff = 1.05f;
                             break;
                         case GOLD: goldCharm = true; break;
+                        case ICE: iceCharm = true; break;
                         case LIFE: lifeCharm = true; break; 
                         case POISON: poisonCharm = true; break; 
                         default: break;
@@ -3458,11 +3464,13 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 }
                 p.setExternalMultipliers(dmgBuff, rngBuff, spdBuff);
                 p.setGoldCharmActive(goldCharm);
+                p.setIceCharmActive(iceCharm);
                 p.setPoisonCharmActive(poisonCharm);
                 p.setLifeCharmActive(lifeCharm);
             } else {
                 p.setExternalMultipliers(1f, 1f, 1f);
                 p.setGoldCharmActive(false);
+                p.setIceCharmActive(false);
                 p.setPoisonCharmActive(false);
                 p.setLifeCharmActive(false);
             }

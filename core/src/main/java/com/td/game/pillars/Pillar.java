@@ -1,5 +1,9 @@
 package com.td.game.pillars;
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -14,6 +18,10 @@ import com.td.game.entities.Enemy;
 import com.td.game.utils.ModelFactory;
 
 public class Pillar implements Disposable {
+    private static final int ICE_CHARM_ATTACKS_PER_FREEZE = 3;
+    private static final float ICE_CHARM_FREEZE_DURATION = 2f;
+    private static final float ICE_CHARM_THAW_DAMAGE_MULTIPLIER = 3f;
+
     private final PillarType type;
     private final Vector3 position;
     private Element currentElement;
@@ -27,6 +35,7 @@ public class Pillar implements Disposable {
     private float bonusRangeMult = 1f;
     private float bonusAttackSpeedMult = 1f;
     private boolean goldCharmActive = false;
+    private boolean iceCharmActive = false;
     private boolean poisonCharmActive = false;
     private boolean lifeCharmActive = false;
     private boolean lifeFrenzyReady = false;
@@ -37,6 +46,8 @@ public class Pillar implements Disposable {
     private float goldGenerationTimer = 0f;
     private int pendingGoldGenerated = 0;
     private float earthTickTimer = 0f;
+    private int iceCharmAttackCounter = 0;
+    private final Set<Enemy> iceCharmThawTargets = new HashSet<Enemy>();
 
     private Enemy focusTarget = null;
     private float focusTimer = 0f;
@@ -101,6 +112,8 @@ public class Pillar implements Disposable {
             com.badlogic.gdx.utils.Array<com.td.game.entities.Projectile> projectiles, boolean waveInProgress) {
         if (!active || currentElement == null)
             return;
+
+        cleanupIceCharmTargets();
 
         if (currentElement == Element.GOLD) {
             if (!waveInProgress) {
@@ -168,6 +181,7 @@ public class Pillar implements Disposable {
     private void attack(com.td.game.entities.Enemy target, com.badlogic.gdx.utils.Array<com.td.game.entities.Enemy> enemies,
             com.badlogic.gdx.utils.Array<com.td.game.entities.Projectile> projectiles) {
         float damage = getActualDamage();
+        boolean iceCharmActive = shouldTriggerIceCharmFreeze();
 
         
         if (lifeFrenzyReady) {
@@ -191,12 +205,14 @@ public class Pillar implements Disposable {
             damage = LightAttack.scaleByCurrentHp(damage, target);
         }
 
+        damage = applyIceCharmThawBonus(target, damage);
+
         
         Model projectileModel = modelFactory.getProjectileModel(currentElement);
         ModelInstance mi = new ModelInstance(projectileModel);
         mi.transform.scl(0.5f);
         projectiles.add(new com.td.game.entities.Projectile(position.cpy().add(0, 2f, 0), target, currentElement, damage, 25f, mi,
-            poisonCharmActive, lifeCharmActive, this));
+            iceCharmActive, poisonCharmActive, lifeCharmActive, this));
     }
 
     private void applyEarthQuakeInRange(com.badlogic.gdx.utils.Array<com.td.game.entities.Enemy> enemies) {
@@ -205,16 +221,69 @@ public class Pillar implements Disposable {
         }
 
         float attackRange = getAttackRange();
-        float damage = getActualDamage() * EarthAttack.DAMAGE_MULTIPLIER;
+        boolean iceCharmFreezeAttack = shouldTriggerIceCharmFreeze();
+        float baseDamage = getActualDamage() * EarthAttack.DAMAGE_MULTIPLIER;
         for (com.td.game.entities.Enemy enemy : enemies) {
             if (enemy == null || !enemy.isAlive() || enemy.isAllied()) {
                 continue;
             }
             if (position.dst(enemy.getPosition()) <= attackRange) {
+                float damage = applyIceCharmThawBonus(enemy, baseDamage);
                 enemy.takeDamage(damage, currentElement, this);
                 enemy.applySlow(EarthAttack.SLOW_DURATION, EarthAttack.SLOW_MULTIPLIER);
+                if (iceCharmFreezeAttack) {
+                    applyIceCharmFreeze(enemy);
+                }
             }
         }
+    }
+
+    private boolean shouldTriggerIceCharmFreeze() {
+        if (!iceCharmActive) {
+            return false;
+        }
+
+        iceCharmAttackCounter++;
+        if (iceCharmAttackCounter >= ICE_CHARM_ATTACKS_PER_FREEZE) {
+            iceCharmAttackCounter = 0;
+            return true;
+        }
+        return false;
+    }
+
+    private float applyIceCharmThawBonus(Enemy target, float damage) {
+        if (!iceCharmActive || target == null || !iceCharmThawTargets.contains(target)) {
+            return damage;
+        }
+        if (target.isFrozen()) {
+            return damage;
+        }
+
+        iceCharmThawTargets.remove(target);
+        return damage * ICE_CHARM_THAW_DAMAGE_MULTIPLIER;
+    }
+
+    private void cleanupIceCharmTargets() {
+        if (iceCharmThawTargets.isEmpty()) {
+            return;
+        }
+
+        Iterator<Enemy> iterator = iceCharmThawTargets.iterator();
+        while (iterator.hasNext()) {
+            Enemy enemy = iterator.next();
+            if (enemy == null || !enemy.isAlive()) {
+                iterator.remove();
+            }
+        }
+    }
+
+    public void applyIceCharmFreeze(Enemy target) {
+        if (target == null || !target.isAlive()) {
+            return;
+        }
+
+        target.applyFreeze(ICE_CHARM_FREEZE_DURATION);
+        iceCharmThawTargets.add(target);
     }
 
     private float getActualDamage() {
@@ -297,6 +366,14 @@ public class Pillar implements Disposable {
 
     public void setGoldCharmActive(boolean goldCharmActive) {
         this.goldCharmActive = goldCharmActive;
+    }
+
+    public void setIceCharmActive(boolean iceCharmActive) {
+        this.iceCharmActive = iceCharmActive;
+        if (!iceCharmActive) {
+            iceCharmAttackCounter = 0;
+            iceCharmThawTargets.clear();
+        }
     }
 
     public boolean isGoldCharmActive() {
