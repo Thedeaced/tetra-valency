@@ -10,6 +10,7 @@ public class WaterAttack implements AttackAction {
     private final float slowMultiplier;
     private final float slowDuration;
 
+    
     public WaterAttack(float baseDamage, float range, float attackSpeed, float slowMultiplier, float slowDuration) {
         this.baseDamage = baseDamage;
         this.range = range;
