@@ -217,6 +217,10 @@ public class ModelFactory implements Disposable {
         return loadModel("3dmodels/Demon.g3db");
     }
 
+    public Model loadDemonLifeModel() {
+        return loadModel("3dmodels/life/Demon_LIFE.g3db");
+    }
+
     public Model loadPinkBlobLifeModel() {
         return loadModel("3dmodels/life/PinkBlob_LIFE.g3db");
     }

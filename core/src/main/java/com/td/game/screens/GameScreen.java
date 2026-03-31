@@ -101,6 +101,7 @@ public class GameScreen implements Screen {
     private Model golemModel;
     private Model batModel;
     private Model pinkBlobModel;
+    private Model demonLifeModel;
     private Model golemLifeModel;
     private Model batLifeModel;
     private Model pinkBlobLifeModel;
@@ -487,6 +488,7 @@ public class GameScreen implements Screen {
         golemModel = modelFactory.loadGolemModel();
         batModel = modelFactory.loadBatModel();
         pinkBlobModel = modelFactory.loadPinkBlobModel();
+        demonLifeModel = modelFactory.loadDemonLifeModel();
         golemLifeModel = modelFactory.loadGolemLifeModel();
         batLifeModel = modelFactory.loadBatLifeModel();
         pinkBlobLifeModel = modelFactory.loadPinkBlobLifeModel();
@@ -3726,7 +3728,7 @@ public class GameScreen implements Screen {
         com.td.game.entities.Enemy ally;
         if (deadEnemy instanceof com.td.game.entities.DemonEnemy) {
             ally = new com.td.game.entities.DemonEnemy(deadEnemy.getMaxHealth() * 0.5f, 1.0f, 0);
-            ally.setModel(demonModel);
+            ally.setModel(demonLifeModel != null ? demonLifeModel : demonModel);
         } else if (deadEnemy instanceof com.td.game.entities.GolemEnemy) {
             ally = new com.td.game.entities.GolemEnemy(deadEnemy.getMaxHealth() * 0.5f, 1.0f, 0);
             ally.setModel(golemLifeModel != null ? golemLifeModel : golemModel);
