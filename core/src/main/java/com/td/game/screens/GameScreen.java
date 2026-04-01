@@ -2158,13 +2158,13 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         float speed = 1f;
         switch (element) {
             case FIRE:
-                damage = 1.15f; // +15% damage
+                damage = 1.15f;
                 break;
             case WATER:
-                speed = 1.15f; // +15% attack speed
+                speed = 1.15f; 
                 break;
             case AIR:
-                range = 1.15f; // +15% range
+                range = 1.15f; 
                 break;
             case EARTH:
                 damage = 1.1f;

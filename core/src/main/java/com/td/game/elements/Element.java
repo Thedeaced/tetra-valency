@@ -7,7 +7,7 @@ public enum Element {
     FIRE("Fire", "🔥", 1f, 0.2f, 0.1f), 
     WATER("Water", "💧", 0.2f, 0.4f, 1f), 
     EARTH("Earth", "🪨", 0.6f, 0.4f, 0.2f), 
-    AIR("Air", "💨", 1f, 1f, 0.3f), 
+    AIR("Air", "💨", 0.75f, 0.75f, 0.75f), 
 
     
     STEAM("Steam", "☁️", 0.7f, 0.7f, 0.7f), 
