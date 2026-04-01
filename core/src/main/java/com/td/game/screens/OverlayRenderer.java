@@ -36,6 +36,7 @@ final class OverlayRenderer {
             int mapAreaWidth,
             int screenHeight) {
         renderEarthquakeFields(uiShapeRenderer, camera, pillars, time, mapAreaWidth, screenHeight);
+        renderFireBeams(uiShapeRenderer, camera, pillars, mapAreaWidth, screenHeight);
 
         if (hoveredPillar != null) {
             RangeOverlayRenderer.drawPillarRange(uiShapeRenderer, camera, hoveredPillar, mapAreaWidth, screenHeight);
@@ -165,5 +166,55 @@ final class OverlayRenderer {
         }
         uiBatch.setColor(Color.WHITE);
         uiBatch.end();
+    }
+
+    private static void renderFireBeams(ShapeRenderer uiShapeRenderer,
+            PerspectiveCamera camera,
+            Array<Pillar> pillars,
+            int mapAreaWidth,
+            int screenHeight) {
+
+        if (pillars == null || pillars.size == 0) return;
+
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        uiShapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+        for (Pillar pillar : pillars) {
+            if (pillar == null || pillar.getCurrentElement() != Element.FIRE) continue;
+
+            float beamTimer = pillar.getFireBeamTimer();
+            if (beamTimer <= 0) continue;
+
+            Enemy target = pillar.getFireAttack().getLastTarget();
+            if (target == null || !target.isAlive()) continue;
+
+            float ramping = pillar.getFireAttack().getCurrentRamping();
+            float maxRamping = 4.5f; 
+            float intensity = ramping / maxRamping; 
+
+            float orbHeight = 2.8f * (com.td.game.utils.Constants.TILE_SIZE / 2.0f);
+            Vector3 startObj = pillar.getPosition().cpy().add(0, orbHeight, 0);
+            Vector3 targetPos = target.getPosition();
+            float yOffset = target.isFlying() ? 3.4f : 2.8f;
+            Vector3 endObj = new Vector3(targetPos.x, targetPos.y + yOffset, targetPos.z);
+
+            Vector3 startP = camera.project(startObj, 0, 0, mapAreaWidth, screenHeight);
+            Vector3 endP = camera.project(endObj, 0, 0, mapAreaWidth, screenHeight);
+
+            if (startP.z < 0 || startP.z > 1 || endP.z < 0 || endP.z > 1) continue;
+
+            Gdx.gl.glLineWidth(6f + intensity * 6f);
+            uiShapeRenderer.setColor(1f, 0.3f, 0f, 0.4f + intensity * 0.3f);
+            uiShapeRenderer.line(startP.x, startP.y, endP.x, endP.y);
+
+            Gdx.gl.glLineWidth(2f + intensity * 2f);
+            uiShapeRenderer.setColor(1f, 0.8f + intensity * 0.2f, 0f, 0.8f + intensity * 0.2f);
+            uiShapeRenderer.line(startP.x, startP.y, endP.x, endP.y);
+        }
+
+        uiShapeRenderer.end();
+        Gdx.gl.glLineWidth(1f);
+        Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 }

@@ -1,36 +1,33 @@
 package com.td.game.combat;
 
-import com.badlogic.gdx.utils.Array;
 import com.td.game.elements.Element;
 import com.td.game.entities.Enemy;
+import com.td.game.pillars.Pillar;
 
 public class FireAttack implements AttackAction {
-    private final float baseDamage;
-    private final float range;
-    private final float attackSpeed;
-    private final float radius;
     private final float rampingUp;
     private final float maxRamping;
     private Enemy lastTarget;
     private float currentRamping = 1f;
 
-    public FireAttack(float baseDamage, float range, float attackSpeed, float radius, float rampingUp,
-            float maxRamping) {
-        this.baseDamage = baseDamage;
-        this.range = range;
-        this.attackSpeed = attackSpeed;
-        this.radius = radius;
+    public FireAttack() {
+        this(0.035f, 4.5f);
+    }
+
+    public FireAttack(float rampingUp, float maxRamping) {
         this.rampingUp = rampingUp;
         this.maxRamping = maxRamping;
     }
 
     @Override
     public void attack(AttackContext context) {
-        if (context == null || context.getTarget() == null) {
+        if (context == null || context.getTarget() == null || context.getSource() == null) {
             return;
         }
 
         Enemy target = context.getTarget();
+        Pillar pillar = context.getSource();
+
         if (target == lastTarget && target.isAlive()) {
             currentRamping = Math.min(maxRamping, currentRamping + rampingUp);
         } else {
@@ -38,26 +35,22 @@ public class FireAttack implements AttackAction {
         }
         lastTarget = target;
 
-        Element attackerElement = context.getSource() != null ? context.getSource().getCurrentElement() : null;
-        float damage = baseDamage * currentRamping;
-        target.takeDamage(damage, attackerElement);
+        Element attackerElement = pillar.getCurrentElement();
+        float damage = pillar.getActualDamage() * 0.1f * currentRamping;
+        
+        target.takeDamage(damage, attackerElement, pillar);
+    }
 
-        if (radius <= 0f) {
-            return;
-        }
+    public Enemy getLastTarget() {
+        return lastTarget;
+    }
 
-        Array<Enemy> enemies = context.getEnemiesInRange();
-        if (enemies == null) {
-            return;
-        }
+    public float getCurrentRamping() {
+        return currentRamping;
+    }
 
-        for (Enemy enemy : enemies) {
-            if (enemy == null || enemy == target || !enemy.isAlive()) {
-                continue;
-            }
-            if (enemy.getPosition().dst(target.getPosition()) <= radius) {
-                enemy.takeDamage(damage, attackerElement);
-            }
-        }
+    public void resetRamping() {
+        currentRamping = 1f;
+        lastTarget = null;
     }
 }

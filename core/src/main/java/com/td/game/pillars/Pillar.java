@@ -49,8 +49,8 @@ public class Pillar implements Disposable {
     private int iceCharmAttackCounter = 0;
     private final Set<Enemy> iceCharmThawTargets = new HashSet<Enemy>();
 
-    private Enemy focusTarget = null;
-    private float focusTimer = 0f;
+    private final com.td.game.combat.FireAttack fireAttack;
+    private float fireBeamTimer = 0f;
 
     public Pillar(PillarType type, Vector3 position, ModelFactory modelFactory) {
         this.type = type;
@@ -59,6 +59,7 @@ public class Pillar implements Disposable {
         this.currentElement = null;
         this.firstOrb = null;
         this.modelFactory = modelFactory;
+        this.fireAttack = new com.td.game.combat.FireAttack();
         updateModel();
     }
 
@@ -146,6 +147,12 @@ public class Pillar implements Disposable {
             earthTickTimer = 0f;
         }
 
+        if (fireBeamTimer > 0) {
+            fireBeamTimer -= delta;
+        } else if (currentElement == Element.FIRE) {
+            fireAttack.resetRamping();
+        }
+
         currentCooldown -= delta;
 
         if (currentCooldown <= 0) {
@@ -164,6 +171,13 @@ public class Pillar implements Disposable {
     }
 
     private com.td.game.entities.Enemy findTarget(com.badlogic.gdx.utils.Array<com.td.game.entities.Enemy> enemies) {
+        if (currentElement == Element.FIRE && fireAttack != null) {
+            com.td.game.entities.Enemy last = fireAttack.getLastTarget();
+            if (last != null && last.isAlive() && position.dst(last.getPosition()) <= getAttackRange()) {
+                return last;
+            }
+        }
+
         com.td.game.entities.Enemy closest = null;
         float minDist = getAttackRange();
 
@@ -191,13 +205,10 @@ public class Pillar implements Disposable {
         
         
         if (currentElement == Element.FIRE) {
-            if (focusTarget == target) {
-                focusTimer += 0.2f; 
-                damage *= (1f + focusTimer);
-            } else {
-                focusTarget = target;
-                focusTimer = 0f;
-            }
+            com.td.game.combat.AttackContext ctx = new com.td.game.combat.AttackContext(this, target, enemies, 0f);
+            fireAttack.attack(ctx);
+            fireBeamTimer = 0.2f;
+            return;
         }
 
         
@@ -286,13 +297,16 @@ public class Pillar implements Disposable {
         iceCharmThawTargets.add(target);
     }
 
-    private float getActualDamage() {
+    public float getActualDamage() {
         float tierMult = (currentElement != null && !currentElement.isPrime()) ? PillarData.TIER_HYBRID_DAMAGE_MULT : PillarData.TIER_PRIME_DAMAGE_MULT;
         return baseDamage * type.getDamageMult() * bonusDamageMult * tierMult;
     }
 
     private float getActualAttackCooldown() {
         float defaultCooldown = baseAttackCooldown / (type.getAttackSpeedMult() * bonusAttackSpeedMult);
+        if (currentElement == Element.FIRE) {
+            return defaultCooldown * 0.1f;
+        }
         return defaultCooldown;
     }
 
@@ -320,6 +334,14 @@ public class Pillar implements Disposable {
 
     public Vector3 getPosition() {
         return position;
+    }
+
+    public com.td.game.combat.FireAttack getFireAttack() {
+        return fireAttack;
+    }
+
+    public float getFireBeamTimer() {
+        return fireBeamTimer;
     }
 
     public float getAttackRange() {

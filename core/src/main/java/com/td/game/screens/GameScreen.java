@@ -2158,17 +2158,17 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         float speed = 1f;
         switch (element) {
             case FIRE:
-                damage = 1.25f;
+                damage = 1.15f;
                 break;
             case WATER:
-                range = 1.2f;
+                speed = 1.15f; 
+                break;
+            case AIR:
+                range = 1.15f; 
                 break;
             case EARTH:
                 damage = 1.1f;
                 range = 1.1f;
-                break;
-            case AIR:
-                speed = 1.25f;
                 break;
             case STEAM:
                 speed = 1.1f;
@@ -2300,7 +2300,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
 
         moveTimer -= delta;
 
-        if (moveTimer <= 0) {
+        if (moveTimer <= 0 && !waveManager.isWaveInProgress()) {
             int dx = 0, dz = 0;
             if (com.td.game.input.KeyBindings.isPressed(com.td.game.input.KeyBindings.Action.MOVE_UP))
                 dz = -1;
