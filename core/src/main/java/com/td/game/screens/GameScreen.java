@@ -1183,11 +1183,15 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         glyphLayout.setText(uiFontLarge, "SHOP");
         uiFontLarge.draw(uiBatch, "SHOP", sectionX + (sectionW - glyphLayout.width) * 0.5f, shopBarY + headerH * 0.78f);
         uiFont.setColor(Color.WHITE);
+        float originalScaleX = uiFont.getData().scaleX;
+        float originalScaleY = uiFont.getData().scaleY;
+        uiFont.getData().setScale(uiScale * 0.54f);
         for (int i = 0; i < 4; i++) {
             float sx = orbStartX + i * (shopSlotSize + slotGap);
             drawOrbTextureCentered(shop.getOrbElement(i), sx, shopSlotsY, shopSlotSize, shopSlotSize);
             uiFont.draw(uiBatch, shop.getOrbPrice(i) + "G", sx + 8f * uiScale, pricesY);
         }
+        uiFont.getData().setScale(originalScaleX, originalScaleY);
         uiBatch.end();
 
         float staffBarY = pricesY - 20f * uiScale - headerH;
