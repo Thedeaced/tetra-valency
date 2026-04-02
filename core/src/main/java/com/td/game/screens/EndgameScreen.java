@@ -115,7 +115,7 @@ public class EndgameScreen implements Screen {
         shapes.begin(ShapeRenderer.ShapeType.Filled);
         drawRect(rootPanel, 30f, MENU_BASE);
 
-        if (endState == EndState.WIN || endState == EndState.ENDLESS_FINISH) {
+        if (endState == EndState.WIN || endState == EndState.ENDLESS_FINISH || endState == EndState.LOSE) {
             drawRect(enterLeaderboardBtn, enterLeaderboardBtn.height * 0.5f, BUTTON_BG);
         }
         if (endState == EndState.WIN) {
@@ -148,7 +148,7 @@ public class EndgameScreen implements Screen {
         }
 
         font.setColor(Color.BLACK);
-        if (endState == EndState.WIN || endState == EndState.ENDLESS_FINISH) {
+        if (endState == EndState.WIN || endState == EndState.ENDLESS_FINISH || endState == EndState.LOSE) {
             drawCentered(font, "Enter Leaderboard", enterLeaderboardBtn.x, enterLeaderboardBtn.y + 38f,
                     enterLeaderboardBtn.width);
         }
@@ -211,7 +211,7 @@ public class EndgameScreen implements Screen {
             dispose();
             return;
         }
-        if (endState == EndState.ENDLESS_FINISH) {
+        if (endState == EndState.ENDLESS_FINISH || endState == EndState.LOSE) {
             Dreamlo.uploadWaveScore(name, lastWave, mapType);
             game.setScreen(new EndlessLeaderboardScreen(game, mapType));
             dispose();
@@ -362,7 +362,7 @@ public class EndgameScreen implements Screen {
                 return true;
             }
 
-            if ((endState == EndState.WIN || endState == EndState.ENDLESS_FINISH)
+            if ((endState == EndState.WIN || endState == EndState.ENDLESS_FINISH || endState == EndState.LOSE)
                     && enterLeaderboardBtn.contains(screenX, y)) {
                 game.audio.playClick();
                 handleEnterLeaderboard();
