@@ -98,6 +98,8 @@ public class Enemy implements Disposable {
     protected float knockbackTimer;
     protected float contactDamageCooldown;
     protected Pillar lastHitPillar;
+    protected boolean allElementsAffinity;
+    protected float elementalDamageTakenMultiplier;
 
     public Enemy(float maxHealth, float speed, int reward) {
         this.maxHealth = maxHealth;
@@ -148,6 +150,8 @@ public class Enemy implements Disposable {
         this.knockbackTimer = 0;
         this.contactDamageCooldown = 0f;
         this.lastHitPillar = null;
+        this.allElementsAffinity = false;
+        this.elementalDamageTakenMultiplier = 1f;
     }
 
     public void setModel(Model model) {
@@ -546,6 +550,10 @@ public class Enemy implements Disposable {
             actualDamage *= multiplier;
         }
 
+        if (attackerElement != null) {
+            actualDamage *= elementalDamageTakenMultiplier;
+        }
+
         
         if (this.element == Element.GOLD) {
             actualDamage *= 0.75f;
@@ -584,6 +592,18 @@ public class Enemy implements Disposable {
             health = 0;
             alive = false;
         }
+    }
+
+    public boolean hasAllElementsAffinity() {
+        return allElementsAffinity;
+    }
+
+    public void setAllElementsAffinity(boolean allElementsAffinity) {
+        this.allElementsAffinity = allElementsAffinity;
+    }
+
+    public void setElementalDamageTakenMultiplier(float elementalDamageTakenMultiplier) {
+        this.elementalDamageTakenMultiplier = Math.max(0f, elementalDamageTakenMultiplier);
     }
 
     private static void playEnemyHitSfxThrottled() {

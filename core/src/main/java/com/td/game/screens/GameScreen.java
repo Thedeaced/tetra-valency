@@ -3254,13 +3254,18 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 enemyName = "Pink Blob";
         }
 
-        String elemName = (hoveredEnemy.getElement() != null) ? hoveredEnemy.getElement().getDisplayName()
-                : "No Element";
+        boolean hasAllElementsAffinity = hoveredEnemy.hasAllElementsAffinity();
+        String elemName = hasAllElementsAffinity
+            ? "All Elements"
+            : ((hoveredEnemy.getElement() != null) ? hoveredEnemy.getElement().getDisplayName() : "No Element");
+        String elemInfo = hasAllElementsAffinity
+            ? "20% less damage from all elements. Carries all elemental traits."
+            : "";
         String hpStr = String.format("HP: %.0f / %.0f", Math.max(0, hoveredEnemy.getHealth()),
                 hoveredEnemy.getMaxHealth());
 
         float panelW = 220f * uiScale;
-        float panelH = 95f * uiScale;
+        float panelH = hasAllElementsAffinity ? 128f * uiScale : 95f * uiScale;
 
         px -= panelW / 2;
         if (px + panelW > screenWidth)
@@ -3289,7 +3294,9 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         uiShapeRenderer.rect(hpBarX, hpBarY, hpBarWidth, hpBarHeight);
 
         Color healthColor;
-        if (hoveredEnemy.getElement() != null) {
+        if (hasAllElementsAffinity) {
+            healthColor = Color.BLACK;
+        } else if (hoveredEnemy.getElement() != null) {
             healthColor = new Color(hoveredEnemy.getElement().getR(), hoveredEnemy.getElement().getG(),
                     hoveredEnemy.getElement().getB(), 1f);
             if (hoveredEnemy.getArmor() > 0) {
@@ -3313,8 +3320,12 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         uiShapeRenderer.end();
 
         uiShapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        Color elemColor = (hoveredEnemy.getElement() != null) ? new Color(hoveredEnemy.getElement().getR(),
-                hoveredEnemy.getElement().getG(), hoveredEnemy.getElement().getB(), 1f) : Color.WHITE;
+        Color elemColor = hasAllElementsAffinity
+            ? Color.BLACK
+            : ((hoveredEnemy.getElement() != null)
+                ? new Color(hoveredEnemy.getElement().getR(), hoveredEnemy.getElement().getG(),
+                    hoveredEnemy.getElement().getB(), 1f)
+                : Color.WHITE);
         uiShapeRenderer.setColor(elemColor);
         uiShapeRenderer.rect(px, py, panelW, panelH);
         uiShapeRenderer.end();
@@ -3332,6 +3343,16 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         uiFont.setColor(elemColor);
         uiFont.draw(uiBatch, elemName, textX, textY);
         textY -= lineH;
+
+        if (hasAllElementsAffinity) {
+            uiFont.setColor(Color.LIGHT_GRAY);
+            uiFont.getData().setScale(uiScale * 0.6f);
+            glyphLayout.setText(uiFont, elemInfo, Color.LIGHT_GRAY, panelW - 20f * uiScale,
+                com.badlogic.gdx.utils.Align.left, true);
+            uiFont.draw(uiBatch, glyphLayout, textX, textY + 4f * uiScale);
+            textY -= 1.4f * lineH;
+            uiFont.getData().setScale(uiScale * 0.8f);
+        }
 
         uiFont.setColor(Color.WHITE);
         

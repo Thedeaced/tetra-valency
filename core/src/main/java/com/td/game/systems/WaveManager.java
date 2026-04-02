@@ -221,6 +221,9 @@ public class WaveManager implements Disposable {
         if (!isFinalWaveDemonBoss) {
             assignedElement = ENEMY_ELEMENTS[MathUtils.random(ENEMY_ELEMENTS.length - 1)];
             enemy.setElement(assignedElement);
+        } else {
+            enemy.setAllElementsAffinity(true);
+            enemy.setElementalDamageTakenMultiplier(0.8f);
         }
 
         Gdx.app.log("WaveManager", String.format("Created enemy: %s, Health: %.0f, Element: %s",
