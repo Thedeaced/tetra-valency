@@ -400,16 +400,8 @@ public class ConsoleMenu {
             return;
         }
 
-        int waveCap = waveManager.getMaxWaves();
-        boolean firstFiftyCleared = waveManager.getCurrentWave() > waveCap
-                || (waveManager.getCurrentWave() >= waveCap && waveManager.areAllWavesComplete());
-        int effectiveWave = targetWave;
-
-        if (!firstFiftyCleared && targetWave > waveCap) {
-            effectiveWave = waveCap;
-        } else if (firstFiftyCleared && targetWave < waveCap) {
-            effectiveWave = waveCap;
-        }
+        int waveCap = 500;
+        int effectiveWave = Math.min(targetWave, waveCap);
 
         ctx.killAllEnemies();
         waveManager.removeDeadEnemies();
