@@ -1285,8 +1285,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 continue;
             }
             Rectangle sellBadge = getInventorySellBadgeRect(i);
-            glyphLayout.setText(uiFont, "SAT");
-            uiFont.draw(uiBatch, "SAT",
+            glyphLayout.setText(uiFont, "SELL");
+            uiFont.draw(uiBatch, "SELL",
                     sellBadge.x + (sellBadge.width - glyphLayout.width) * 0.5f,
                     sellBadge.y + (sellBadge.height + glyphLayout.height) * 0.5f - 1f * uiScale);
         }
