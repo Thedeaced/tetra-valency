@@ -1,5 +1,10 @@
 package com.td.game.screens;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -18,11 +23,6 @@ import com.td.game.TowerDefenseGame;
 import com.td.game.map.GameMap;
 import com.td.game.utils.Dreamlo;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 public class WinLeaderboardScreen implements Screen {
     private static final int TOP_COUNT = 5;
     private final TowerDefenseGame game;
@@ -40,7 +40,7 @@ public class WinLeaderboardScreen implements Screen {
     private boolean loaded;
 
     public WinLeaderboardScreen(TowerDefenseGame game, GameMap.MapType mapType) {
-        this(game, mapType, null, -1f);
+        this( game, mapType, null, -1f);
     }
 
     public WinLeaderboardScreen(TowerDefenseGame game, GameMap.MapType mapType, String submittedName, float submittedTimeSeconds) {
