@@ -9,3 +9,4 @@ lwjgl3/build/
 Thumbs.db
 saves/
 crashlog.txt
+.tools/
