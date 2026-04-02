@@ -31,8 +31,6 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonValue;
 import com.td.game.TowerDefenseGame;
 import com.td.game.combat.LifeAttack;
-import com.td.game.combat.PoisonAttack;
-import com.td.game.combat.SteamAttack;
 import com.td.game.elements.Element;
 import com.td.game.inventory.Inventory;
 import com.td.game.map.GameMap;
@@ -672,6 +670,10 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
 
     private void tryStartNextWave() {
         if (waveManager == null) {
+            return;
+        }
+        if (!isPlayerOnBuildableTile()) {
+            showMessage("Move off the path to start the wave.");
             return;
         }
 
@@ -1362,7 +1364,9 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         uiShapeRenderer.setColor(0.92f, 0.92f, 0.92f, 1f);
         uiShapeRenderer.rect(seeAugmentsBtnX, seeAugmentsBtnY, seeAugmentsBtnW, seeAugmentsBtnH);
 
-        boolean canStartWave = !waveManager.isWaveInProgress() && !waveManager.areAllWavesComplete();
+        boolean canStartWave = !waveManager.isWaveInProgress()
+            && !waveManager.areAllWavesComplete()
+            && isPlayerOnBuildableTile();
         uiShapeRenderer.setColor(canStartWave ? Color.WHITE : new Color(0.5f, 0.5f, 0.5f, 1f));
         uiShapeRenderer.rect(playBtnX, playBtnY, playBtnW, playBtnH);
         uiShapeRenderer.end();
@@ -1430,10 +1434,41 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         return new Rectangle(iconX, toggleY, toggleW, toggleH);
     }
 
+    private static String formatMultiplier(float value) {
+        return String.format("%.2f", value);
+    }
+
+    private String formatPillarStatLine(String label, float baseMult, float augmentMult, float auraMult) {
+        float externalMult = augmentMult * auraMult;
+        float totalMult = baseMult * externalMult;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(label)
+                .append(": x")
+                .append(formatMultiplier(totalMult));
+
+        if (Math.abs(externalMult - 1f) > 0.0001f) {
+            sb.append(" (base x")
+                    .append(formatMultiplier(baseMult));
+
+            if (Math.abs(augmentMult - 1f) > 0.0001f) {
+                sb.append(", aug x")
+                        .append(formatMultiplier(augmentMult));
+            }
+            if (Math.abs(auraMult - 1f) > 0.0001f) {
+                sb.append(", aura x")
+                        .append(formatMultiplier(auraMult));
+            }
+            sb.append(")");
+        }
+
+        return sb.toString();
+    }
+
     private void renderPillarStats(int screenWidth, int screenHeight) {
 
-        float boxW = 220 * uiScale;
-        float boxH = 120 * uiScale;
+        float boxW = 320 * uiScale;
+        float boxH = 170 * uiScale;
         float boxX = Gdx.input.getX() + 20;
         float boxY = screenHeight - Gdx.input.getY() + 20;
         if (boxX + boxW > screenWidth - shopWidth)
@@ -1455,16 +1490,50 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         float tx = boxX + 10;
         float ty = boxY + boxH - 15;
         PillarType type = hoveredPillar.getType();
+        Element staffElement = staffUI.getEquippedElement();
+        boolean inAuraRange = staffElement != null
+                && hoveredPillar.getPosition().dst(player.getPosition()) <= staffAuraRadius;
+        float[] auraMult = inAuraRange ? getAuraMultipliers(staffElement) : new float[] { 1f, 1f, 1f };
+
+        float damageAugmentMult = globalDamageMult;
+        float rangeAugmentMult = globalRangeMult;
+        float speedAugmentMult = globalAttackSpeedMult;
+
+        float damageAuraMult = auraMult[0];
+        float rangeAuraMult = auraMult[1];
+        float speedAuraMult = auraMult[2];
+
+        boolean damageBuffed = Math.abs((damageAugmentMult * damageAuraMult) - 1f) > 0.0001f;
+        boolean rangeBuffed = Math.abs((rangeAugmentMult * rangeAuraMult) - 1f) > 0.0001f;
+        boolean speedBuffed = Math.abs((speedAugmentMult * speedAuraMult) - 1f) > 0.0001f;
+
         uiFont.setColor(Color.GOLD);
         uiFont.draw(uiBatch, type.getDisplayName(), tx, ty);
         ty -= lineH;
-        uiFont.setColor(Color.WHITE);
-        uiFont.draw(uiBatch, "Damage: x" + String.format("%.1f", type.getDamageMult()), tx, ty);
+
+        uiFont.setColor(damageBuffed ? Color.YELLOW : Color.WHITE);
+        uiFont.draw(uiBatch, formatPillarStatLine("Damage", type.getDamageMult(), damageAugmentMult, damageAuraMult), tx, ty);
         ty -= lineH;
-        uiFont.draw(uiBatch, "Range: x" + String.format("%.1f", type.getRangeMult()), tx, ty);
+
+        uiFont.setColor(rangeBuffed ? Color.YELLOW : Color.WHITE);
+        uiFont.draw(uiBatch, formatPillarStatLine("Range", type.getRangeMult(), rangeAugmentMult, rangeAuraMult), tx, ty);
         ty -= lineH;
-        uiFont.draw(uiBatch, "Speed: x" + String.format("%.1f", type.getAttackSpeedMult()), tx, ty);
+
+        uiFont.setColor(speedBuffed ? Color.YELLOW : Color.WHITE);
+        uiFont.draw(uiBatch,
+                formatPillarStatLine("Speed", type.getAttackSpeedMult(), speedAugmentMult, speedAuraMult),
+                tx,
+                ty);
         ty -= lineH;
+
+        uiFont.setColor(inAuraRange ? Color.CYAN : Color.LIGHT_GRAY);
+        if (inAuraRange) {
+            uiFont.draw(uiBatch, "Aura: " + staffElement.name() + " active", tx, ty);
+        } else {
+            uiFont.draw(uiBatch, "Aura: inactive", tx, ty);
+        }
+        ty -= lineH;
+
         if (hoveredPillar.isActive()) {
             Element e = hoveredPillar.getCurrentElement();
             uiFont.setColor(e.getR(), e.getG(), e.getB(), 1f);
