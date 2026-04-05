@@ -719,6 +719,19 @@ public class Enemy implements Disposable {
         }
     }
 
+    public void burstPoisonStacks() {
+        if (poisonTimer <= 0f || poisonStacks <= 0) {
+            return;
+        }
+
+        float totalPoisonDamage = poisonDamage * poisonStacks;
+        takeDamage(totalPoisonDamage, Element.POISON, lastHitPillar);
+        poisonStacks = 0;
+        poisonTimer = 0f;
+        poisonDamageCounter = 0f;
+        poisonFlashTimer = POISON_BURST_DURATION;
+    }
+
     public void applyRoot(float duration, float slowAmount, float armorBonus) {
         if (rootTimer <= 0) {
 
