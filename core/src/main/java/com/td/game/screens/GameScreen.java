@@ -195,6 +195,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private static final float EARTH_AFTERSHOCK_DAMAGE_FACTOR = 0.40f;
     private static final float ICE_ABSOLUTE_ZERO_RADIUS = Constants.TILE_SIZE;
     private static final float ICE_ABSOLUTE_ZERO_FREEZE_DURATION = 2f;
+    private static final float STEAM_PRESSURE_SURGE_RADIUS = Constants.TILE_SIZE;
 
     private float moveDelay = 0.2f;
     private float moveTimer = 0;
@@ -218,13 +219,15 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private boolean iceAbsoluteZeroEnabled = false;
     private boolean poisonToxicSpillEnabled = false;
     private boolean lightPrismEnabled = false;
+    private boolean steamPressureSurgeEnabled = false;
     private final HashMap<com.td.game.entities.Enemy, Integer> tidalSealHits = new HashMap<>();
     private final HashMap<com.td.game.entities.Enemy, Float> turbulenceTimers = new HashMap<>();
     private final HashMap<com.td.game.entities.Enemy, Integer> toxicSpillHits = new HashMap<>();
+    private final HashMap<com.td.game.entities.Enemy, Integer> pressureSurgeKnockbacks = new HashMap<>();
     private static final int MERGE_COST = 20;
     private static final float INFO_PANEL_SHIFT_DOWN = 100f;
     private static final float GATE_MODEL_SCALE_MULTIPLIER = 2.0f;
-    private static final int MAX_AUGMENT_ID = 15;
+    private static final int MAX_AUGMENT_ID = 16;
 
     public GameScreen(TowerDefenseGame game) {
         this(game, GameMap.MapType.ELEMENTAL_CASTLE, false);
@@ -1982,6 +1985,9 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             case 15:
                 path = "ui/augment_icon_prism.png";
                 break;
+            case 16:
+                path = "ui/augment_icon_pressure_surge.png";
+                break;
         }
         com.badlogic.gdx.files.FileHandle file = resolveAsset(path);
         if (file.exists()) {
@@ -2120,9 +2126,11 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         this.iceAbsoluteZeroEnabled = false;
         this.poisonToxicSpillEnabled = false;
         this.lightPrismEnabled = false;
+        this.steamPressureSurgeEnabled = false;
         this.tidalSealHits.clear();
         this.turbulenceTimers.clear();
         this.toxicSpillHits.clear();
+        this.pressureSurgeKnockbacks.clear();
 
         this.acquiredAugments.clear();
         for (int augId : data.acquiredAugments) {
@@ -2143,6 +2151,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 this.poisonToxicSpillEnabled = true;
             } else if (augId == 15) {
                 this.lightPrismEnabled = true;
+            } else if (augId == 16) {
+                this.steamPressureSurgeEnabled = true;
             }
         }
     }
@@ -2229,6 +2239,10 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 lightPrismEnabled = true;
                 showMessage("Augment: Prism");
                 break;
+            case 16:
+                steamPressureSurgeEnabled = true;
+                showMessage("Augment: Pressure Surge");
+                break;
             default:
                 break;
         }
@@ -2268,6 +2282,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 return "Toxic Spill";
             case 15:
                 return "Prism";
+            case 16:
+                return "Pressure Surge";
             default:
                 return "Unknown";
         }
@@ -2307,6 +2323,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 return "Every 5 poison applications trigger an instant stack explosion";
             case 15:
                 return "Light pillars always target the highest-health enemy in range";
+            case 16:
+                return "After 5 Steam knockbacks, the target explodes for its remaining HP in a small radius";
             default:
                 return "-";
         }
@@ -2603,6 +2621,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                         goldEarned += killerPillar.getGoldCharmBonus(goldEarned);
                     }
                     toxicSpillHits.remove(enemy);
+                    pressureSurgeKnockbacks.remove(enemy);
                     economyManager.earn(goldEarned);
                     game.audio.playGoldGain();
                     
@@ -3601,6 +3620,14 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 float hpPercent = target.getHealth() / Math.max(1f, target.getMaxHealth());
                 float kbDist = 1.0f + (1.0f - hpPercent) * 3.0f;
                 target.applyKnockback(kbDist);
+                if (steamPressureSurgeEnabled && target.isAlive()) {
+                    int hits = pressureSurgeKnockbacks.getOrDefault(target, 0) + 1;
+                    if (hits >= 5) {
+                        triggerSteamPressureSurge(target, sourcePillar);
+                        hits = 0;
+                    }
+                    pressureSurgeKnockbacks.put(target, hits);
+                }
                 break;
             default:
                 break;
@@ -3624,7 +3651,32 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             tidalSealHits.remove(target);
             turbulenceTimers.remove(target);
             toxicSpillHits.remove(target);
+            pressureSurgeKnockbacks.remove(target);
         }
+    }
+
+    private void triggerSteamPressureSurge(com.td.game.entities.Enemy triggerEnemy, Pillar sourcePillar) {
+        if (triggerEnemy == null || waveManager == null || !triggerEnemy.isAlive()) {
+            return;
+        }
+
+        float explosionDamage = Math.max(0f, triggerEnemy.getHealth());
+        if (explosionDamage <= 0f) {
+            return;
+        }
+
+        triggerEnemy.takeDamage(explosionDamage, Element.STEAM, sourcePillar);
+
+        for (com.td.game.entities.Enemy enemy : waveManager.getActiveEnemies()) {
+            if (enemy == null || enemy == triggerEnemy || !enemy.isAlive() || enemy.isAllied()) {
+                continue;
+            }
+            if (enemy.getPosition().dst(triggerEnemy.getPosition()) <= STEAM_PRESSURE_SURGE_RADIUS) {
+                enemy.takeDamage(explosionDamage, Element.STEAM, sourcePillar);
+            }
+        }
+
+        spawnEffect(triggerEnemy.getPosition(), Element.STEAM, 0.5f, 1.0f);
     }
 
     private void updateTurbulenceTimers(float delta) {
