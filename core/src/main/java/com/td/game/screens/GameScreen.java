@@ -193,6 +193,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private static final float LIFE_ALLY_COLLISION_COOLDOWN = 0.6f;
     private static final float EARTH_AFTERSHOCK_RADIUS = Constants.TILE_SIZE;
     private static final float EARTH_AFTERSHOCK_DAMAGE_FACTOR = 0.40f;
+    private static final float ICE_ABSOLUTE_ZERO_RADIUS = Constants.TILE_SIZE;
+    private static final float ICE_ABSOLUTE_ZERO_FREEZE_DURATION = 2f;
 
     private float moveDelay = 0.2f;
     private float moveTimer = 0;
@@ -213,12 +215,13 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private boolean waterTidalSealEnabled = false;
     private boolean airTurbulenceEnabled = false;
     private boolean earthAftershockEnabled = false;
+    private boolean iceAbsoluteZeroEnabled = false;
     private final HashMap<com.td.game.entities.Enemy, Integer> tidalSealHits = new HashMap<>();
     private final HashMap<com.td.game.entities.Enemy, Float> turbulenceTimers = new HashMap<>();
     private static final int MERGE_COST = 20;
     private static final float INFO_PANEL_SHIFT_DOWN = 100f;
     private static final float GATE_MODEL_SCALE_MULTIPLIER = 2.0f;
-    private static final int MAX_AUGMENT_ID = 12;
+    private static final int MAX_AUGMENT_ID = 13;
 
     public GameScreen(TowerDefenseGame game) {
         this(game, GameMap.MapType.ELEMENTAL_CASTLE, false);
@@ -1967,6 +1970,9 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             case 12:
                 path = "ui/augment_icon_aftershock.png";
                 break;
+            case 13:
+                path = "ui/augment_icon_absolute_zero.png";
+                break;
         }
         com.badlogic.gdx.files.FileHandle file = resolveAsset(path);
         if (file.exists()) {
@@ -2102,6 +2108,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         this.waterTidalSealEnabled = false;
         this.airTurbulenceEnabled = false;
         this.earthAftershockEnabled = false;
+        this.iceAbsoluteZeroEnabled = false;
         this.tidalSealHits.clear();
         this.turbulenceTimers.clear();
 
@@ -2118,6 +2125,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 this.airTurbulenceEnabled = true;
             } else if (augId == 12) {
                 this.earthAftershockEnabled = true;
+            } else if (augId == 13) {
+                this.iceAbsoluteZeroEnabled = true;
             }
         }
     }
@@ -2192,6 +2201,10 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 earthAftershockEnabled = true;
                 showMessage("Augment: Aftershock");
                 break;
+            case 13:
+                iceAbsoluteZeroEnabled = true;
+                showMessage("Augment: Absolute Zero");
+                break;
             default:
                 break;
         }
@@ -2225,6 +2238,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 return "Turbulence";
             case 12:
                 return "Aftershock";
+            case 13:
+                return "Absolute Zero";
             default:
                 return "Unknown";
         }
@@ -2258,6 +2273,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 return "Air hits force enemies to walk backward for 2 seconds";
             case 12:
                 return "Earth kills trigger a mini quake with 40% damage in a smaller area";
+            case 13:
+                return "Frozen enemy deaths freeze nearby enemies in a small radius";
             default:
                 return "-";
         }
@@ -2542,6 +2559,9 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                     if (earthAftershockEnabled && killerPillar != null && killerPillar.getCurrentElement() == Element.EARTH) {
                         triggerEarthAftershock(enemy, killerPillar);
                     }
+                    if (iceAbsoluteZeroEnabled && enemy.isFrozen()) {
+                        triggerIceAbsoluteZero(enemy);
+                    }
                     
                     if (enemy.getElement() == Element.GOLD) {
                         goldEarned = (int)(goldEarned * 2f);
@@ -2649,6 +2669,23 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         }
 
         spawnEffect(deadEnemy.getPosition(), Element.EARTH, 0.5f, 1.0f);
+    }
+
+    private void triggerIceAbsoluteZero(com.td.game.entities.Enemy deadEnemy) {
+        if (deadEnemy == null || waveManager == null) {
+            return;
+        }
+
+        for (com.td.game.entities.Enemy enemy : waveManager.getActiveEnemies()) {
+            if (enemy == null || enemy == deadEnemy || !enemy.isAlive() || enemy.isAllied()) {
+                continue;
+            }
+            if (enemy.getPosition().dst(deadEnemy.getPosition()) <= ICE_ABSOLUTE_ZERO_RADIUS) {
+                enemy.applyFreeze(ICE_ABSOLUTE_ZERO_FREEZE_DURATION);
+            }
+        }
+
+        spawnEffect(deadEnemy.getPosition(), Element.ICE, 0.5f, 1.0f);
     }
 
     @Override
