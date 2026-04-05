@@ -32,6 +32,7 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonValue;
 import com.td.game.TowerDefenseGame;
+import com.td.game.combat.EarthAttack;
 import com.td.game.combat.LifeAttack;
 import com.td.game.elements.Element;
 import com.td.game.inventory.Inventory;
@@ -190,6 +191,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private static final float LIFE_ALLY_COLLISION_RADIUS = Constants.TILE_SIZE * 0.35f;
     private static final float LIFE_ALLY_COLLISION_DAMAGE_FACTOR = 0.20f;
     private static final float LIFE_ALLY_COLLISION_COOLDOWN = 0.6f;
+    private static final float EARTH_AFTERSHOCK_RADIUS = Constants.TILE_SIZE;
+    private static final float EARTH_AFTERSHOCK_DAMAGE_FACTOR = 0.40f;
 
     private float moveDelay = 0.2f;
     private float moveTimer = 0;
@@ -209,12 +212,13 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private boolean fireChainOfAhesEnabled = false;
     private boolean waterTidalSealEnabled = false;
     private boolean airTurbulenceEnabled = false;
+    private boolean earthAftershockEnabled = false;
     private final HashMap<com.td.game.entities.Enemy, Integer> tidalSealHits = new HashMap<>();
     private final HashMap<com.td.game.entities.Enemy, Float> turbulenceTimers = new HashMap<>();
     private static final int MERGE_COST = 20;
     private static final float INFO_PANEL_SHIFT_DOWN = 100f;
     private static final float GATE_MODEL_SCALE_MULTIPLIER = 2.0f;
-    private static final int MAX_AUGMENT_ID = 11;
+    private static final int MAX_AUGMENT_ID = 12;
 
     public GameScreen(TowerDefenseGame game) {
         this(game, GameMap.MapType.ELEMENTAL_CASTLE, false);
@@ -1960,6 +1964,9 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             case 11:
                 path = "ui/augment_icon_turbulence.png";
                 break;
+            case 12:
+                path = "ui/augment_icon_aftershock.png";
+                break;
         }
         com.badlogic.gdx.files.FileHandle file = resolveAsset(path);
         if (file.exists()) {
@@ -2094,6 +2101,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         this.fireChainOfAhesEnabled = false;
         this.waterTidalSealEnabled = false;
         this.airTurbulenceEnabled = false;
+        this.earthAftershockEnabled = false;
         this.tidalSealHits.clear();
         this.turbulenceTimers.clear();
 
@@ -2108,6 +2116,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 this.waterTidalSealEnabled = true;
             } else if (augId == 11) {
                 this.airTurbulenceEnabled = true;
+            } else if (augId == 12) {
+                this.earthAftershockEnabled = true;
             }
         }
     }
@@ -2178,6 +2188,10 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 airTurbulenceEnabled = true;
                 showMessage("Augment: Turbulence");
                 break;
+            case 12:
+                earthAftershockEnabled = true;
+                showMessage("Augment: Aftershock");
+                break;
             default:
                 break;
         }
@@ -2209,6 +2223,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 return "Tidal Seal";
             case 11:
                 return "Turbulence";
+            case 12:
+                return "Aftershock";
             default:
                 return "Unknown";
         }
@@ -2240,6 +2256,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 return "Every 3 Water hits on the same enemy apply a damage-taken seal";
             case 11:
                 return "Air hits force enemies to walk backward for 2 seconds";
+            case 12:
+                return "Earth kills trigger a mini quake with 40% damage in a smaller area";
             default:
                 return "-";
         }
@@ -2520,6 +2538,10 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                     game.audio.playEnemyDeath();
                     int goldEarned = enemy.getReward();
                     Pillar killerPillar = enemy.getLastHitPillar();
+
+                    if (earthAftershockEnabled && killerPillar != null && killerPillar.getCurrentElement() == Element.EARTH) {
+                        triggerEarthAftershock(enemy, killerPillar);
+                    }
                     
                     if (enemy.getElement() == Element.GOLD) {
                         goldEarned = (int)(goldEarned * 2f);
@@ -2608,6 +2630,25 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         hoveredPillar = hoverState.hoveredPillar;
         hoveringAlchemist = hoverState.hoveringAlchemist;
         updatePillarMultipliers();
+    }
+
+    private void triggerEarthAftershock(com.td.game.entities.Enemy deadEnemy, Pillar sourcePillar) {
+        if (deadEnemy == null || sourcePillar == null || waveManager == null) {
+            return;
+        }
+
+        float aftershockDamage = sourcePillar.getActualDamage() * EarthAttack.DAMAGE_MULTIPLIER * EARTH_AFTERSHOCK_DAMAGE_FACTOR;
+        for (com.td.game.entities.Enemy enemy : waveManager.getActiveEnemies()) {
+            if (enemy == null || enemy == deadEnemy || !enemy.isAlive() || enemy.isAllied()) {
+                continue;
+            }
+            if (enemy.getPosition().dst(deadEnemy.getPosition()) <= EARTH_AFTERSHOCK_RADIUS) {
+                enemy.takeDamage(aftershockDamage, Element.EARTH, sourcePillar);
+                enemy.applySlow(EarthAttack.SLOW_DURATION, EarthAttack.SLOW_MULTIPLIER);
+            }
+        }
+
+        spawnEffect(deadEnemy.getPosition(), Element.EARTH, 0.5f, 1.0f);
     }
 
     @Override
