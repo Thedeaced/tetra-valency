@@ -582,11 +582,11 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private int toDisplayWaveForState(EndgameScreen.EndState endState, boolean randomizeForConsole) {
         int currentWave = waveManager != null ? waveManager.getCurrentWave() : 1;
         int waveCap = waveManager != null ? waveManager.getMaxWaves() : 50;
-        if (!randomizeForConsole) {
+        if (endState == EndgameScreen.EndState.ENDLESS_FINISH) {
             return Math.max(1, currentWave);
         }
-        if (endState == EndgameScreen.EndState.ENDLESS_FINISH) {
-            return MathUtils.random(waveCap + 1, waveCap + 120);
+        if (!randomizeForConsole) {
+            return Math.max(1, currentWave);
         }
         return MathUtils.random(1, Math.max(1, waveCap));
     }
@@ -2533,11 +2533,19 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
 
         
         if (economyManager.isGameOver()) {
-            lose(globalTimer);
+            if (endlessMode) {
+                loseEndless(globalTimer);
+            } else {
+                lose(globalTimer);
+            }
             return;
         }
         if (waveManager.areAllWavesComplete() && waveManager.getAliveEnemyCount() == 0) {
-            winNormal(globalTimer);
+            if (endlessMode) {
+                loseEndless(globalTimer);
+            } else {
+                winNormal(globalTimer);
+            }
             return;
         }
 
@@ -2561,7 +2569,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             return false;
         }
 
-        EndgameScreen.EndState endState = currentWave > waveCap
+        EndgameScreen.EndState endState = endlessMode
                 ? EndgameScreen.EndState.ENDLESS_FINISH
                 : EndgameScreen.EndState.WIN;
         openEndgameScreen(endState, currentWave, Math.max(0f, elapsedTime));
