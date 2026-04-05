@@ -40,6 +40,7 @@ public class Pillar implements Disposable {
     private boolean lifeCharmActive = false;
     private boolean lifeFrenzyReady = false;
     private boolean prismActive = false;
+    private boolean goldFundActive = false;
 
     private float currentCooldown = 0f;
     private final float baseAttackCooldown = PillarData.BASE_ATTACK_COOLDOWN;
@@ -118,8 +119,9 @@ public class Pillar implements Disposable {
         cleanupIceCharmTargets();
 
         if (currentElement == Element.GOLD) {
-            if (!waveInProgress) {
+            if (!waveInProgress || goldFundActive) {
                 goldGenerationTimer = 0f;
+                pendingGoldGenerated = 0;
                 return;
             }
 
@@ -454,6 +456,14 @@ public class Pillar implements Disposable {
 
     public void setPrismActive(boolean prismActive) {
         this.prismActive = prismActive;
+    }
+
+    public void setGoldFundActive(boolean goldFundActive) {
+        this.goldFundActive = goldFundActive;
+        if (goldFundActive) {
+            goldGenerationTimer = 0f;
+            pendingGoldGenerated = 0;
+        }
     }
 
     public void activateLifeFrenzy() {

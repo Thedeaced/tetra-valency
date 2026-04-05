@@ -220,6 +220,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private boolean poisonToxicSpillEnabled = false;
     private boolean lightPrismEnabled = false;
     private boolean steamPressureSurgeEnabled = false;
+    private boolean goldFundEnabled = false;
     private final HashMap<com.td.game.entities.Enemy, Integer> tidalSealHits = new HashMap<>();
     private final HashMap<com.td.game.entities.Enemy, Float> turbulenceTimers = new HashMap<>();
     private final HashMap<com.td.game.entities.Enemy, Integer> toxicSpillHits = new HashMap<>();
@@ -227,7 +228,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private static final int MERGE_COST = 20;
     private static final float INFO_PANEL_SHIFT_DOWN = 100f;
     private static final float GATE_MODEL_SCALE_MULTIPLIER = 2.0f;
-    private static final int MAX_AUGMENT_ID = 16;
+    private static final int MAX_AUGMENT_ID = 17;
 
     public GameScreen(TowerDefenseGame game) {
         this(game, GameMap.MapType.ELEMENTAL_CASTLE, false);
@@ -1988,6 +1989,9 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             case 16:
                 path = "ui/augment_icon_pressure_surge.png";
                 break;
+            case 17:
+                path = "ui/augment_icon_gold_fund.png";
+                break;
         }
         com.badlogic.gdx.files.FileHandle file = resolveAsset(path);
         if (file.exists()) {
@@ -2127,6 +2131,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         this.poisonToxicSpillEnabled = false;
         this.lightPrismEnabled = false;
         this.steamPressureSurgeEnabled = false;
+        this.goldFundEnabled = false;
         this.tidalSealHits.clear();
         this.turbulenceTimers.clear();
         this.toxicSpillHits.clear();
@@ -2153,6 +2158,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 this.lightPrismEnabled = true;
             } else if (augId == 16) {
                 this.steamPressureSurgeEnabled = true;
+            } else if (augId == 17) {
+                this.goldFundEnabled = true;
             }
         }
     }
@@ -2243,6 +2250,10 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 steamPressureSurgeEnabled = true;
                 showMessage("Augment: Pressure Surge");
                 break;
+            case 17:
+                goldFundEnabled = true;
+                showMessage("Augment: Gold Fund");
+                break;
             default:
                 break;
         }
@@ -2284,6 +2295,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 return "Prism";
             case 16:
                 return "Pressure Surge";
+            case 17:
+                return "Gold Fund";
             default:
                 return "Unknown";
         }
@@ -2325,6 +2338,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 return "Light pillars always target the highest-health enemy in range";
             case 16:
                 return "After 5 Steam knockbacks, the target explodes for its remaining HP in a small radius";
+            case 17:
+                return "Gold pillars stop generating gold. Each finished wave grants (wave + 1) * 10 gold";
             default:
                 return "-";
         }
@@ -2424,6 +2439,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             }
             pillar.setExternalMultipliers(damage, range, speed);
             pillar.setPrismActive(lightPrismEnabled);
+            pillar.setGoldFundActive(goldFundEnabled);
         }
     }
 
@@ -2575,6 +2591,13 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         waveManager.update(delta);
         if (wasWaveInProgress && !waveManager.isWaveInProgress() && waveManager.getCurrentWave() > 0) {
             game.audio.playWaveComplete();
+            if (goldFundEnabled) {
+                int finishedWave = waveManager.getCurrentWave();
+                int goldReward = (finishedWave + 1) * 10;
+                economyManager.earn(goldReward);
+                game.audio.playGoldGain();
+                showMessage("Gold Fund: +" + goldReward + " gold");
+            }
             saveGameState();
         }
 
