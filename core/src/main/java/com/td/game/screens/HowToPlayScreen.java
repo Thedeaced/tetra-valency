@@ -87,25 +87,39 @@ public class HowToPlayScreen implements Screen {
         leftY = drawLine("- Don't let enemies reach the Core!", leftX, leftY, BODY_COLOR);
 
         leftY -= SECTION_BREAK;
-        leftY = drawHeading("2. Build Pillars", leftX, leftY);
+        leftY = drawHeading("2. Buıld Pıllars", leftX, leftY);
         leftY = drawLine("- Rapid Spire: High attack speed", leftX, leftY, BODY_COLOR);
         leftY = drawLine("- Power Monolith: Heavy damage", leftX, leftY, BODY_COLOR);
         leftY = drawLine("- Sniper Pedestal: Long range", leftX, leftY, BODY_COLOR);
 
         leftY -= SECTION_BREAK;
-        leftY = drawHeading("3. Use the Elements", leftX, leftY);
+        leftY = drawHeading("3. Elements & Staff", leftX, leftY);
         leftY = drawLine("- Buy Orbs in Shop: Fire, Water, Earth, Air", leftX, leftY, BODY_COLOR);
-        leftY = drawLine("- Equip to Staff & Socket into Pillars", leftX, leftY, BODY_COLOR);
+        leftY = drawLine("- Click an Orb to equip it to your Wizard Staff", leftX, leftY, BODY_COLOR);
+        leftY = drawLine("- Click a Pillar to socket your equipped Orb", leftX, leftY, BODY_COLOR);
+        leftY = drawLine("- Click your Staff icon to unequip the Orb", leftX, leftY, BODY_COLOR);
 
         float rightY = topY;
         rightY = drawHeading("4. Merge & Master", rightX, rightY);
         rightY = drawLine("- Place 2 Orbs on Merge Board for hybrids:", rightX, rightY, BODY_COLOR);
-        rightY = drawLine("   Fire + Water = Steam (AoE)", rightX, rightY, EMPHASIS_COLOR);
-        rightY = drawLine("   Water + Air  = Ice (Freeze)", rightX, rightY, EMPHASIS_COLOR);
-        rightY = drawLine("   Water + Earth= Poison (DoT)", rightX, rightY, EMPHASIS_COLOR);
-        rightY = drawLine("   Fire + Air   = Light (Piercing)", rightX, rightY, EMPHASIS_COLOR);
-        rightY = drawLine("   Fire + Earth = Gold (Earn Money)", rightX, rightY, EMPHASIS_COLOR);
-        rightY = drawLine("   Earth + Air  = Life (Nature)", rightX, rightY, EMPHASIS_COLOR);
+        rightY = drawLine("   Fire + Water = Steam", rightX, rightY, EMPHASIS_COLOR);
+        rightY = drawLine("   Water + Air  = Ice", rightX, rightY, EMPHASIS_COLOR);
+        rightY = drawLine("   Water + Earth= Poison", rightX, rightY, EMPHASIS_COLOR);
+        rightY = drawLine("   Fire + Air   = Light", rightX, rightY, EMPHASIS_COLOR);
+        rightY = drawLine("   Fire + Earth = Gold", rightX, rightY, EMPHASIS_COLOR);
+        rightY = drawLine("   Earth + Air  = Life", rightX, rightY, EMPHASIS_COLOR);
+
+        rightY -= SECTION_BREAK;
+        rightY = drawHeading("5. Alchemist Aura", rightX, rightY);
+        rightY = drawLine("- Move your Alchemist to reposition the Aura.", rightX, rightY, BODY_COLOR);
+        rightY = drawLine("- Staff Orbs buff nearby Pillars in the Aura:", rightX, rightY, BODY_COLOR);
+        rightY = drawLine("   Fire: +Damage%  | Water: +Range%", rightX, rightY, EMPHASIS_COLOR);
+        rightY = drawLine("   Earth: +Stats%  | Hybrids: Special Charms!", rightX, rightY, EMPHASIS_COLOR);
+
+        rightY -= SECTION_BREAK;
+        rightY = drawHeading("6. Augment System", rightX, rightY);
+        rightY = drawLine("- Periodically choose a permanent Augment after waves.", rightX, rightY, BODY_COLOR);
+        rightY = drawLine("- These provide powerful buffs and new mechanics!", rightX, rightY, BODY_COLOR);
     }
 
     private float drawHeading(String text, float x, float y) {
@@ -138,8 +152,10 @@ public class HowToPlayScreen implements Screen {
     public void resize(int width, int height) {
         batch.getProjectionMatrix().setToOrtho2D(0, 0, width, height);
         shapes.getProjectionMatrix().setToOrtho2D(0, 0, width, height);
-        if (font != null) font.dispose();
-        if (titleFont != null) titleFont.dispose();
+        if (font != null)
+            font.dispose();
+        if (titleFont != null)
+            titleFont.dispose();
         font = createFont("fonts/font_game_screen.ttf", scaledFontSize(22));
         titleFont = createFont("fonts/font_game_screen.ttf", scaledFontSize(36));
         recalcLayout();
@@ -150,20 +166,27 @@ public class HowToPlayScreen implements Screen {
     }
 
     @Override
-    public void pause() {}
+    public void pause() {
+    }
 
     @Override
-    public void resume() {}
+    public void resume() {
+    }
 
     @Override
-    public void hide() {}
+    public void hide() {
+    }
 
     @Override
     public void dispose() {
-        if (font != null) font.dispose();
-        if (titleFont != null) titleFont.dispose();
-        if (batch != null) batch.dispose();
-        if (shapes != null) shapes.dispose();
+        if (font != null)
+            font.dispose();
+        if (titleFont != null)
+            titleFont.dispose();
+        if (batch != null)
+            batch.dispose();
+        if (shapes != null)
+            shapes.dispose();
     }
 
     private BitmapFont createFont(String path, int size) {
@@ -186,9 +209,11 @@ public class HowToPlayScreen implements Screen {
 
     private static FileHandle resolveAsset(String name) {
         FileHandle f = Gdx.files.internal(name);
-        if (f.exists()) return f;
+        if (f.exists())
+            return f;
         f = Gdx.files.internal("assets/" + name);
-        if (f.exists()) return f;
+        if (f.exists())
+            return f;
         return Gdx.files.internal(name);
     }
 
@@ -205,7 +230,8 @@ public class HowToPlayScreen implements Screen {
 
         @Override
         public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-            if (button != Input.Buttons.LEFT) return false;
+            if (button != Input.Buttons.LEFT)
+                return false;
 
             float y = Gdx.graphics.getHeight() - screenY;
 
