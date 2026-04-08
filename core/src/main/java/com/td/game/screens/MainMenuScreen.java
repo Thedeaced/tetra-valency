@@ -37,6 +37,8 @@ public class MainMenuScreen implements Screen {
     private Rectangle howToPlayBtn;
     private String uiMessage;
     private float uiMessageTimer;
+    private int lastScreenWidth = -1;
+    private int lastScreenHeight = -1;
 
     public MainMenuScreen(TowerDefenseGame game) {
         this.game = game;
@@ -46,7 +48,6 @@ public class MainMenuScreen implements Screen {
     public void show() {
         batch = new SpriteBatch();
         shapes = new ShapeRenderer();
-        menuFont = createFont("fonts/font_game_screen.ttf", scaledFontSize(30));
         glyphLayout = new GlyphLayout();
 
         bgTexture = loadTextureSafe("ui/main_menu_bg.png");
@@ -60,7 +61,7 @@ public class MainMenuScreen implements Screen {
         uiMessage = "";
         uiMessageTimer = 0f;
 
-        recalcLayout();
+        resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.input.setInputProcessor(new InputHandler());
     }
 
@@ -99,6 +100,9 @@ public class MainMenuScreen implements Screen {
 
         float w = Gdx.graphics.getWidth();
         float h = Gdx.graphics.getHeight();
+        if (w != lastScreenWidth || h != lastScreenHeight) {
+            resize((int) w, (int) h);
+        }
 
         if (bgTexture != null) {
             batch.begin();
@@ -159,6 +163,8 @@ public class MainMenuScreen implements Screen {
             menuFont.dispose();
         menuFont = createFont("fonts/font_game_screen.ttf", scaledFontSize(30));
         recalcLayout();
+        lastScreenWidth = width;
+        lastScreenHeight = height;
     }
 
     private int scaledFontSize(int baseSize) {
