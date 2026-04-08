@@ -709,11 +709,15 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     }
 
     private void setPaused(boolean value) {
+        setPaused(value, true);
+    }
+
+    private void setPaused(boolean value, boolean playSound) {
         if (paused == value) {
             return;
         }
         paused = value;
-        if (game != null && game.audio != null) {
+        if (playSound && game != null && game.audio != null) {
             game.audio.playPauseToggle();
         }
     }
@@ -750,7 +754,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     }
 
     public void returnFromOptions(boolean reloadSave) {
-        setPaused(true);
+        setPaused(true, false);
         if (reloadSave) {
             loadGame();
         }
