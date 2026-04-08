@@ -2295,6 +2295,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         game.audio.playAugmentPick();
         applyAugment(picked);
         acquiredAugments.add(new AcquiredAugment(picked));
+        saveGameState();
         augmentChoiceActive = false;
         augmentOptionA = -1;
         augmentOptionB = -1;
@@ -2714,6 +2715,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         waveManager.update(delta);
         if (wasWaveInProgress && !waveManager.isWaveInProgress() && waveManager.getCurrentWave() > 0) {
             clearWaveLimitedAllies();
+            waveManager.removeDeadEnemies();
             game.audio.playWaveComplete();
             int finishedWave = waveManager.getCurrentWave();
             int waveGold = finishedWave * 50;
@@ -2778,8 +2780,9 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                     game.audio.playGoldGain();
                     
                     
-                    if (LifeAttack.canRevive(pillars, enemy)) {
+                    if (waveManager.isWaveInProgress() && !enemy.isLifeRevived() && LifeAttack.canRevive(pillars, enemy)) {
                         if (lifeReviveBossesEnabled || !(enemy instanceof com.td.game.entities.DemonEnemy)) {
+                            enemy.setLifeRevived(true);
                             reviveAsAlly(enemy);
                         }
                     }
@@ -4002,7 +4005,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
 
         for (int i = 0; i < enemies.size; i++) {
             com.td.game.entities.Enemy enemy = enemies.get(i);
-            if (enemy != null && enemy.isAlive() && enemy.isWaveLimitedAlly()) {
+            if (enemy != null && enemy.isAlive() && enemy.isAllied()) {
                 enemy.takeDamage(enemy.getMaxHealth() * 100f, null, null);
             }
         }

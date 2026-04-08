@@ -466,6 +466,9 @@ public class ConsoleMenu {
             ctx.applyAugmentById(id);
             ctx.addAcquiredAugment(id);
         }
+        if (ctx instanceof GameScreen) {
+            ((GameScreen) ctx).saveForOptions();
+        }
         activeInput = INPUT_NONE;
     }
 

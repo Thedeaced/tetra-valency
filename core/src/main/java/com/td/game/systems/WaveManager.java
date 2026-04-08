@@ -255,7 +255,7 @@ public class WaveManager implements Disposable {
     public int getAliveEnemyCount() {
         int count = 0;
         for (Enemy enemy : activeEnemies) {
-            if (enemy.isAlive())
+            if (enemy.isAlive() && !enemy.isAllied())
                 count++;
         }
         return count;

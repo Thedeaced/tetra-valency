@@ -96,6 +96,8 @@ public class Enemy implements Disposable {
     protected Vector3 knockbackVelocity;
     protected float knockbackDuration;
     protected float knockbackTimer;
+    protected int knockbackTargetIndex;
+    protected float knockbackSpeed;
     protected float contactDamageCooldown;
     protected Pillar lastHitPillar;
     protected boolean allElementsAffinity;
@@ -103,6 +105,7 @@ public class Enemy implements Disposable {
     protected ArmorLayer armorLayer;
     protected long armorBreakSerial;
     protected boolean waveLimitedAlly;
+    protected boolean lifeRevived;
 
     public Enemy(float maxHealth, float speed, int reward) {
         this.maxHealth = maxHealth;
@@ -151,6 +154,8 @@ public class Enemy implements Disposable {
         this.knockbackVelocity = new Vector3();
         this.knockbackDuration = 0;
         this.knockbackTimer = 0;
+        this.knockbackTargetIndex = -1;
+        this.knockbackSpeed = 0f;
         this.contactDamageCooldown = 0f;
         this.lastHitPillar = null;
         this.allElementsAffinity = false;
@@ -158,6 +163,7 @@ public class Enemy implements Disposable {
         this.armorLayer = null;
         this.armorBreakSerial = 0L;
         this.waveLimitedAlly = false;
+        this.lifeRevived = false;
     }
 
     public void setModel(Model model) {
@@ -312,14 +318,38 @@ public class Enemy implements Disposable {
         
         if (knockbackTimer > 0) {
             knockbackTimer -= deltaTime;
-            position.add(knockbackVelocity.cpy().scl(deltaTime));
-            
-            
+            if (waypoints != null && waypoints.size > 0 && knockbackTargetIndex >= 0) {
+                float remaining = knockbackSpeed * deltaTime;
+                while (remaining > 0f && currentWaypointIndex > knockbackTargetIndex) {
+                    Vector3 target = waypoints.get(Math.max(0, currentWaypointIndex - 1));
+                    Vector3 dir = new Vector3(target).sub(position);
+                    float dist = dir.len();
+                    if (dist <= WAYPOINT_REACH_EPSILON) {
+                        position.set(target);
+                        currentWaypointIndex = Math.max(0, currentWaypointIndex - 1);
+                        continue;
+                    }
+                    dir.scl(1f / dist);
+                    float step = Math.min(remaining, dist);
+                    position.mulAdd(dir, step);
+                    remaining -= step;
+                    if (step >= dist - 0.0001f) {
+                        position.set(target);
+                        currentWaypointIndex = Math.max(0, currentWaypointIndex - 1);
+                    }
+                }
+                if (currentWaypointIndex <= knockbackTargetIndex) {
+                    knockbackTimer = 0f;
+                }
+            }
+
             if (knockbackTimer <= 0) {
                 knockbackVelocity.setZero();
+                knockbackTargetIndex = -1;
             }
-            
+
             updateModelPosition();
+            clampToCurrentSegment(Constants.TILE_SIZE * 0.75f);
             return; 
         }
 
@@ -379,6 +409,7 @@ public class Enemy implements Disposable {
             }
         }
 
+        clampToCurrentSegment(Constants.TILE_SIZE * 0.75f);
         if (animationController != null) {
             animationController.update(deltaTime);
         }
@@ -388,6 +419,43 @@ public class Enemy implements Disposable {
 
     private boolean hasCompletedPath() {
         return isMovingBackwards ? currentWaypointIndex < 0 : currentWaypointIndex >= waypoints.size;
+    }
+
+    private void clampToCurrentSegment(float maxDistance) {
+        if (waypoints == null || waypoints.size < 2) {
+            return;
+        }
+        int aIdx;
+        int bIdx;
+        if (isMovingBackwards) {
+            aIdx = MathUtils.clamp(currentWaypointIndex, 0, waypoints.size - 1);
+            bIdx = MathUtils.clamp(currentWaypointIndex + 1, 0, waypoints.size - 1);
+        } else {
+            aIdx = MathUtils.clamp(currentWaypointIndex - 1, 0, waypoints.size - 1);
+            bIdx = MathUtils.clamp(currentWaypointIndex, 0, waypoints.size - 1);
+            if (aIdx == bIdx) {
+                bIdx = MathUtils.clamp(bIdx + 1, 0, waypoints.size - 1);
+            }
+        }
+        Vector3 a = waypoints.get(aIdx);
+        Vector3 b = waypoints.get(bIdx);
+        float dx = b.x - a.x;
+        float dz = b.z - a.z;
+        float len2 = dx * dx + dz * dz;
+        float t;
+        if (len2 <= 0.0001f) {
+            t = 0f;
+        } else {
+            t = ((position.x - a.x) * dx + (position.z - a.z) * dz) / len2;
+            t = MathUtils.clamp(t, 0f, 1f);
+        }
+        float closestX = a.x + dx * t;
+        float closestZ = a.z + dz * t;
+        float dist2 = (position.x - closestX) * (position.x - closestX)
+                + (position.z - closestZ) * (position.z - closestZ);
+        if (dist2 > maxDistance * maxDistance) {
+            position.set(closestX, position.y, closestZ);
+        }
     }
 
     private void advanceWaypoint() {
@@ -801,23 +869,23 @@ public class Enemy implements Disposable {
 
     public void applyKnockback(float distance) {
         this.knockbackDistance = distance;
-        
         if (waypoints != null && waypoints.size > 0 && distance > 0) {
-            
-            Vector3 backwardDirection;
-            if (currentWaypointIndex > 0) {
-                backwardDirection = waypoints.get(currentWaypointIndex - 1).cpy().sub(position).nor();
-            } else {
-                
-                backwardDirection = new Vector3(-1, 0, 0);
-            }
-            
-            
-            float knockbackForce = distance * 8f; 
-            knockbackVelocity.set(backwardDirection).scl(knockbackForce);
-            knockbackDuration = distance / knockbackForce; 
+            int steps = Math.max(1, Math.round(distance / Constants.TILE_SIZE));
+            int targetIndex = Math.max(0, currentWaypointIndex - steps);
+            knockbackTargetIndex = targetIndex;
+            float speed = baseSpeed * 2.2f;
+            float travelDist = Math.max(1f, steps * Constants.TILE_SIZE);
+            knockbackDuration = Math.max(0.12f, travelDist / speed);
+            knockbackSpeed = travelDist / knockbackDuration;
             knockbackTimer = knockbackDuration;
+            return;
         }
+        // Fallback: keep previous knockback behavior if no path info.
+        Vector3 backwardDirection = new Vector3(-1, 0, 0);
+        float knockbackForce = distance * 8f;
+        knockbackVelocity.set(backwardDirection).scl(knockbackForce);
+        knockbackDuration = distance / knockbackForce;
+        knockbackTimer = knockbackDuration;
     }
 
     public void stripShield(float amount) {
@@ -994,6 +1062,14 @@ public class Enemy implements Disposable {
 
     public void setWaveLimitedAlly(boolean waveLimitedAlly) {
         this.waveLimitedAlly = waveLimitedAlly;
+    }
+
+    public boolean isLifeRevived() {
+        return lifeRevived;
+    }
+
+    public void setLifeRevived(boolean lifeRevived) {
+        this.lifeRevived = lifeRevived;
     }
 
     public boolean canDealContactDamage() {
