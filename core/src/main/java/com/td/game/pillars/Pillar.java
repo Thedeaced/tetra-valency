@@ -15,6 +15,7 @@ import com.td.game.combat.EarthAttack;
 import com.td.game.combat.LightAttack;
 import com.td.game.elements.Element;
 import com.td.game.entities.Enemy;
+import com.td.game.utils.Constants;
 import com.td.game.utils.ModelFactory;
 
 public class Pillar implements Disposable {
@@ -337,7 +338,7 @@ public class Pillar implements Disposable {
 
     public float getActualDamage() {
         float tierMult = (currentElement != null && !currentElement.isPrime()) ? PillarData.TIER_HYBRID_DAMAGE_MULT : PillarData.TIER_PRIME_DAMAGE_MULT;
-        return baseDamage * type.getDamageMult() * bonusDamageMult * tierMult;
+        return baseDamage * type.getDamageMult() * bonusDamageMult * tierMult * Constants.GLOBAL_TOWER_DAMAGE_MULTIPLIER;
     }
 
     private float getActualAttackCooldown() {

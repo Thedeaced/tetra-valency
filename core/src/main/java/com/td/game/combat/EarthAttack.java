@@ -3,6 +3,7 @@ package com.td.game.combat;
 import com.td.game.entities.Enemy;
 import com.td.game.pillars.Pillar;
 import com.td.game.pillars.PillarData;
+import com.td.game.utils.Constants;
 
 public class EarthAttack implements AttackAction {
     public static final float TICK_INTERVAL = 1.0f;
@@ -36,7 +37,7 @@ public class EarthAttack implements AttackAction {
     public void attack(AttackContext context) {
         float baseDamage = 0f;
         if (context != null && context.getSource() != null) {
-            baseDamage = PillarData.BASE_DAMAGE * context.getSource().getType().getDamageMult();
+            baseDamage = PillarData.BASE_DAMAGE * context.getSource().getType().getDamageMult() * Constants.GLOBAL_TOWER_DAMAGE_MULTIPLIER;
         }
         applyQuakeInRange(context, baseDamage);
     }

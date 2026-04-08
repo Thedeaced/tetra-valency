@@ -18,5 +18,8 @@ public final class Constants {
     
     public static final float CAMERA_DISTANCE = 30f;
     public static final float CAMERA_ANGLE = 45f;
+
+    public static final float GLOBAL_ENEMY_HEALTH_MULTIPLIER = 0.5f;
+    public static final float GLOBAL_TOWER_DAMAGE_MULTIPLIER = 1.5f;
 }
 

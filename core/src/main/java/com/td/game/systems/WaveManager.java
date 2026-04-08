@@ -14,6 +14,7 @@ import com.td.game.entities.DemonEnemy;
 import com.td.game.entities.Enemy;
 import com.td.game.entities.GolemEnemy;
 import com.td.game.entities.PinkBlobEnemy;
+import com.td.game.utils.Constants;
 import com.td.game.utils.ModelFactory;
 
 public class WaveManager implements Disposable {
@@ -163,7 +164,7 @@ public class WaveManager implements Disposable {
     }
 
     protected float getHealthMultiplierForWave(int wave) {
-        return 1f + (wave * 0.15f);
+        return (1f + (wave * 0.15f)) * Constants.GLOBAL_ENEMY_HEALTH_MULTIPLIER;
     }
 
     protected float getSpeedMultiplierForWave(int wave) {
