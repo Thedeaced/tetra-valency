@@ -708,6 +708,20 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         acquiredAugments.add(new AcquiredAugment(id));
     }
 
+    @Override
+    public int getAugmentCount() {
+        return acquiredAugments.size;
+    }
+
+    @Override
+    public void replaceFirstAugment(int id) {
+        if (acquiredAugments.size == 0) {
+            acquiredAugments.add(new AcquiredAugment(id));
+            return;
+        }
+        acquiredAugments.set(0, new AcquiredAugment(id));
+    }
+
     private void setPaused(boolean value) {
         setPaused(value, true);
     }
@@ -1926,21 +1940,25 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             uiFontLarge.draw(uiBatch, "No augments acquired yet.", boxX + (boxW - glyphLayout.width) * 0.5f,
                     boxY + boxH * 0.5f);
         } else {
-            float gapX = 220 * uiScale;
-            float totalW = (acquiredAugments.size - 1) * gapX;
-            float startX = boxX + boxW * 0.5f - totalW * 0.5f;
-            float startY = boxY + boxH - 140 * uiScale;
+            int maxCount = Math.min(8, acquiredAugments.size);
+            int cols = 4;
+            float iconSize = 72 * uiScale;
+            float gapX = 26 * uiScale;
+            float gapY = 104 * uiScale;
+            float rowW = cols * iconSize + (cols - 1) * gapX;
+            float startX = boxX + (boxW - rowW) * 0.5f;
+            float topY = boxY + boxH - 130 * uiScale;
 
-            for (int i = 0; i < acquiredAugments.size; i++) {
+            for (int i = 0; i < maxCount; i++) {
                 AcquiredAugment aug = acquiredAugments.get(i);
-                float cx = startX + i * gapX;
+                int row = i / cols;
+                int col = i % cols;
+                float iconX = startX + col * (iconSize + gapX);
+                float iconY = topY - row * gapY;
+                float cx = iconX + iconSize * 0.5f;
 
                 String augName = getAugmentName(aug.id);
                 Texture iconTex = getAugmentIconTexture(aug.id);
-
-                float iconSize = 80 * uiScale;
-                float iconX = cx - iconSize * 0.5f;
-                float iconY = startY;
 
                 if (iconTex != null) {
                     uiBatch.draw(iconTex, iconX, iconY, iconSize, iconSize);
@@ -1948,7 +1966,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
 
                 uiFont.setColor(Color.WHITE);
                 glyphLayout.setText(uiFont, augName);
-                uiFont.draw(uiBatch, augName, cx - glyphLayout.width * 0.5f, startY - 20 * uiScale);
+                uiFont.draw(uiBatch, augName, cx - glyphLayout.width * 0.5f, iconY - 16 * uiScale);
 
                 if (mouseX >= iconX && mouseX <= iconX + iconSize && mouseY >= iconY && mouseY <= iconY + iconSize) {
                     hoverAugId = aug.id;
@@ -2676,10 +2694,11 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         }
 
         if (!waveManager.isWaveInProgress() && (!waveManager.areAllWavesComplete() || wasJumpedPastMaxWave)) {
-            if (waveManager.getCurrentWave() > 0 && waveManager.getCurrentWave() % 10 == 0
-                    && !waveManager.hasShownAugmentForWave(waveManager.getCurrentWave())) {
+            int currentWave = waveManager.getCurrentWave();
+            if (currentWave > 0 && currentWave % 10 == 0 && currentWave <= 80
+                    && !waveManager.hasShownAugmentForWave(currentWave)) {
                 showAugmentSelection();
-                waveManager.setShownAugmentForWave(waveManager.getCurrentWave(), true);
+                waveManager.setShownAugmentForWave(currentWave, true);
                 saveGameState();
             } else if (autoplayEnabled) {
                 tryStartNextWave();

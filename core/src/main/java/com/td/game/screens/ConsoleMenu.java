@@ -29,6 +29,8 @@ public class ConsoleMenu {
         boolean isAugmentAcquired(int id);
         void applyAugmentById(int id);
         void addAcquiredAugment(int id);
+        int getAugmentCount();
+        void replaceFirstAugment(int id);
         void setWasJumpedPastMaxWave(boolean value);
     }
 
@@ -456,8 +458,14 @@ public class ConsoleMenu {
             ctx.showMessage("Augment already acquired.");
             return;
         }
-        ctx.applyAugmentById(id);
-        ctx.addAcquiredAugment(id);
+        if (ctx.getAugmentCount() >= 8) {
+            ctx.applyAugmentById(id);
+            ctx.replaceFirstAugment(id);
+            ctx.showMessage("Augment list full. Replaced the first augment.");
+        } else {
+            ctx.applyAugmentById(id);
+            ctx.addAcquiredAugment(id);
+        }
         activeInput = INPUT_NONE;
     }
 
