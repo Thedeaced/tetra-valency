@@ -1858,10 +1858,12 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             uiBatch.draw(iconA, leftX + (cardW - 80 * uiScale) * 0.5f, cardY + cardH - 100 * uiScale, 80 * uiScale,
                     80 * uiScale);
         }
-        uiFontLarge.setColor(Color.CYAN);
         String nameA = "[1] " + getAugmentName(augmentOptionA);
-        glyphLayout.setText(uiFontLarge, nameA);
-        uiFontLarge.draw(uiBatch, nameA, leftX + (cardW - glyphLayout.width) * 0.5f, cardY + cardH - 120 * uiScale);
+        uiFont.setColor(Color.CYAN);
+        uiFont.getData().setScale(uiScale * 0.62f);
+        glyphLayout.setText(uiFont, nameA);
+        uiFont.draw(uiBatch, nameA, leftX + (cardW - glyphLayout.width) * 0.5f, cardY + cardH - 118 * uiScale);
+        uiFont.getData().setScale(uiScale * 0.54f);
         uiFont.setColor(Color.WHITE);
         String descA = getAugmentDesc(augmentOptionA);
         float descWidth = cardW - 24f * uiScale;
@@ -1876,10 +1878,12 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             uiBatch.draw(iconB, rightX + (cardW - 80 * uiScale) * 0.5f, cardY + cardH - 100 * uiScale, 80 * uiScale,
                     80 * uiScale);
         }
-        uiFontLarge.setColor(Color.CYAN);
         String nameB = "[2] " + getAugmentName(augmentOptionB);
-        glyphLayout.setText(uiFontLarge, nameB);
-        uiFontLarge.draw(uiBatch, nameB, rightX + (cardW - glyphLayout.width) * 0.5f, cardY + cardH - 120 * uiScale);
+        uiFont.setColor(Color.CYAN);
+        uiFont.getData().setScale(uiScale * 0.62f);
+        glyphLayout.setText(uiFont, nameB);
+        uiFont.draw(uiBatch, nameB, rightX + (cardW - glyphLayout.width) * 0.5f, cardY + cardH - 118 * uiScale);
+        uiFont.getData().setScale(uiScale * 0.54f);
         uiFont.setColor(Color.WHITE);
         String descB = getAugmentDesc(augmentOptionB);
         uiFont.getData().setScale(uiScale * 0.5f);
@@ -2657,8 +2661,12 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         if (wasWaveInProgress && !waveManager.isWaveInProgress() && waveManager.getCurrentWave() > 0) {
             clearWaveLimitedAllies();
             game.audio.playWaveComplete();
+            int finishedWave = waveManager.getCurrentWave();
+            int waveGold = finishedWave * 50;
+            economyManager.earn(waveGold);
+            game.audio.playGoldGain();
+            showMessage("Wave Reward: +" + waveGold + " gold");
             if (goldFundEnabled) {
-                int finishedWave = waveManager.getCurrentWave();
                 int goldReward = (finishedWave + 1) * 10;
                 economyManager.earn(goldReward);
                 game.audio.playGoldGain();
