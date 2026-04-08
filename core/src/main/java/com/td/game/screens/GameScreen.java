@@ -3494,9 +3494,13 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             : "";
         String hpStr = String.format("HP: %.0f / %.0f", Math.max(0, hoveredEnemy.getHealth()),
                 hoveredEnemy.getMaxHealth());
+        boolean hasArmorLayer = hoveredEnemy.getMaxArmorLayer() > 0f;
+        String armorStr = hasArmorLayer
+            ? String.format("Armor: %.0f / %.0f", Math.max(0, hoveredEnemy.getArmorLayer()), hoveredEnemy.getMaxArmorLayer())
+            : null;
 
         float panelW = 220f * uiScale;
-        float panelH = hasAllElementsAffinity ? 128f * uiScale : 95f * uiScale;
+        float panelH = hasAllElementsAffinity ? 128f * uiScale : (hasArmorLayer ? 114f * uiScale : 95f * uiScale);
 
         px -= panelW / 2;
         if (px + panelW > screenWidth)
@@ -3544,7 +3548,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             }
         }
 
-        boolean armoredEnemy = hoveredEnemy.getMaxArmorLayer() > 0f;
+        boolean armoredEnemy = hasArmorLayer;
         if (armoredEnemy) {
             float halfBarWidth = hpBarWidth * 0.5f;
             float healthPercent = MathUtils.clamp(Math.max(0f, hoveredEnemy.getHealth()) / hoveredEnemy.getMaxHealth(), 0f, 1f);
@@ -3607,6 +3611,11 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         uiFont.setColor(Color.WHITE);
         
         uiFont.draw(uiBatch, hpStr, textX, textY + 5f * uiScale);
+        if (armorStr != null) {
+            textY -= 0.82f * lineH;
+            uiFont.setColor(Color.LIGHT_GRAY);
+            uiFont.draw(uiBatch, armorStr, textX, textY + 5f * uiScale);
+        }
 
         uiFont.getData().setScale(uiScale);
         uiBatch.end();

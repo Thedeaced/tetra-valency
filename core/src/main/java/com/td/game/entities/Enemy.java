@@ -588,6 +588,10 @@ public class Enemy implements Disposable {
             actualDamage *= armorMeltMultiplier;
         }
 
+        if (hasArmorLayer()) {
+            actualDamage *= 0.5f;
+        }
+
         
         if (shield > 0) {
             if (shield >= actualDamage) {

@@ -18,16 +18,5 @@ public final class Constants {
     
     public static final float CAMERA_DISTANCE = 30f;
     public static final float CAMERA_ANGLE = 45f;
-
-    
-    public static final int TOWER_ARCHER = 0;
-    public static final int TOWER_MAGE = 1;
-    public static final int TOWER_CANNON = 2;
-    public static final int TOWER_ICE = 3;
-
-    
-    public static final int ENEMY_NORMAL = 0;
-    public static final int ENEMY_FAST = 1;
-    public static final int ENEMY_TANK = 2;
 }
 

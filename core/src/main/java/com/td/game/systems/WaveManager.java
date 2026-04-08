@@ -237,7 +237,7 @@ public class WaveManager implements Disposable {
             if (wave >= 20) {
                 float armoredChance = Math.min(0.55f, 0.18f + (wave - 20) * 0.012f);
                 if (MathUtils.randomBoolean(armoredChance)) {
-                    enemy.enableArmorLayer(0.5f);
+                    enemy.enableArmorLayer(1.0f);
                 }
             }
         } else {
