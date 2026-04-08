@@ -745,6 +745,24 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         }
     }
 
+    public void saveForOptions() {
+        saveGameState();
+    }
+
+    public void returnFromOptions(boolean reloadSave) {
+        setPaused(true);
+        if (reloadSave) {
+            loadGame();
+        }
+    }
+
+    private void resumeFromPause() {
+        if (com.td.game.systems.SaveManager.hasSave(mapType)) {
+            loadGame();
+        }
+        setPaused(false);
+    }
+
     public void killAllEnemies() {
         if (waveManager != null) {
             waveManager.killAllEnemies();
@@ -2932,7 +2950,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
 
                 if (isInRect(screenX, flippedY, btnX, resumeY, btnW, btnH)) {
                     game.audio.playClick();
-                    setPaused(false);
+                    resumeFromPause();
                 } else if (isInRect(screenX, flippedY, btnX, optionsY, btnW, btnH)) {
                     game.audio.playClick();
                     game.setScreen(new OptionsScreen(game, (com.badlogic.gdx.Screen) GameScreen.this));

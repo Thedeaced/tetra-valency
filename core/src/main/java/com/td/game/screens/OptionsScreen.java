@@ -61,6 +61,7 @@ public class OptionsScreen implements Screen {
     private boolean draggingMusic;
     private boolean draggingSound;
     private boolean fullscreenMode;
+    private boolean displayModeChanged;
 
     public OptionsScreen(TowerDefenseGame game) {
         this(game, (GameMap.MapType) null);
@@ -93,6 +94,7 @@ public class OptionsScreen implements Screen {
         recalcLayout();
         updateKnobsFromVolume();
         fullscreenMode = options.fullscreen;
+        displayModeChanged = false;
         applyDisplayMode(false);
         Gdx.input.setInputProcessor(new InputHandler());
     }
@@ -265,6 +267,10 @@ public class OptionsScreen implements Screen {
 
     private void toggleDisplayMode() {
         fullscreenMode = !fullscreenMode;
+        displayModeChanged = true;
+        if (returnScreen instanceof GameScreen) {
+            ((GameScreen) returnScreen).saveForOptions();
+        }
         applyDisplayMode(true);
     }
 
@@ -437,6 +443,10 @@ public class OptionsScreen implements Screen {
         private void goBack() {
             if (returnScreen != null) {
                 game.setScreen(returnScreen);
+                if (returnScreen instanceof GameScreen) {
+                    GameScreen gs = (GameScreen) returnScreen;
+                    gs.returnFromOptions(displayModeChanged);
+                }
             } else if (returnMapType != null) {
                 game.setScreen(new GameScreen(game, returnMapType));
             } else {
