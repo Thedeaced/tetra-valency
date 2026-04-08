@@ -12,6 +12,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -91,6 +92,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private Texture hudInfoIconTexture;
     private Texture poisonBurstTexture;
     private Texture armoredShieldTexture;
+    private Texture armoredShieldBgTexture;
     private Texture pauseMenuBackgroundTexture;
     private Model gateModel;
     private Model coreSphereModel;
@@ -295,7 +297,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         hudGoldIconTexture = new Texture(resolveAsset("ui/hud_currency_gold.png"));
         hudInfoIconTexture = new Texture(resolveAsset("ui/hud_info_icon.png"));
         poisonBurstTexture = new Texture(resolveAsset("attack/poison.png"));
-        armoredShieldTexture = new Texture(resolveAsset("ui/shield.png"));
+        armoredShieldTexture = createWhiteSilhouetteTexture("ui/shield.png");
+        armoredShieldBgTexture = createCircleTexture(96, Color.BLACK);
         pauseMenuBackgroundTexture = new Texture(resolveAsset("ui/main_menu_bg.png"));
         elementInfoPanelTexture = loadFirstExistingTexture(
                 new String[] { "ui/element_info_panel.png", "assets/ui/element_info_panel.png" });
@@ -825,6 +828,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 waveManager.getActiveEnemies(),
                 poisonBurstTexture,
                 armoredShieldTexture,
+                armoredShieldBgTexture,
                 globalTimer,
                 mapAreaWidth,
                 screenHeight
@@ -3313,6 +3317,37 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         return Gdx.files.internal("assets/" + name);
     }
 
+    private static Texture createWhiteSilhouetteTexture(String assetPath) {
+        Pixmap source = new Pixmap(resolveAsset(assetPath));
+        Pixmap white = new Pixmap(source.getWidth(), source.getHeight(), Pixmap.Format.RGBA8888);
+
+        for (int y = 0; y < source.getHeight(); y++) {
+            for (int x = 0; x < source.getWidth(); x++) {
+                int rgba = source.getPixel(x, y);
+                int alpha = rgba & 0xff;
+                white.drawPixel(x, y, (255 << 24) | (255 << 16) | (255 << 8) | alpha);
+            }
+        }
+
+        Texture texture = new Texture(white);
+        source.dispose();
+        white.dispose();
+        return texture;
+    }
+
+    private static Texture createCircleTexture(int size, Color color) {
+        Pixmap pixmap = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        pixmap.setColor(0f, 0f, 0f, 0f);
+        pixmap.fill();
+
+        pixmap.setColor(color);
+        pixmap.fillCircle(size / 2, size / 2, size / 2);
+
+        Texture texture = new Texture(pixmap);
+        pixmap.dispose();
+        return texture;
+    }
+
     private BitmapFont createGameScreenFont(int size) {
         com.badlogic.gdx.files.FileHandle f = resolveAsset("fonts/font_game_screen.ttf");
         FreeTypeFontGenerator gen = new FreeTypeFontGenerator(f);
@@ -3369,6 +3404,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             poisonBurstTexture.dispose();
         if (armoredShieldTexture != null)
             armoredShieldTexture.dispose();
+        if (armoredShieldBgTexture != null)
+            armoredShieldBgTexture.dispose();
         if (pauseMenuBackgroundTexture != null)
             pauseMenuBackgroundTexture.dispose();
         if (gateModel != null)

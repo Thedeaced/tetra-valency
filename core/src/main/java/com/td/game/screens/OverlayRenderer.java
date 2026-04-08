@@ -33,6 +33,7 @@ final class OverlayRenderer {
             Array<Enemy> enemies,
             Texture poisonBurstTexture,
             Texture armoredShieldTexture,
+            Texture armoredShieldBgTexture,
             float time,
             int mapAreaWidth,
             int screenHeight) {
@@ -55,7 +56,8 @@ final class OverlayRenderer {
         uiBatch.end();
 
         renderPoisonBurstEffects(uiBatch, camera, enemies, poisonBurstTexture, uiScale, mapAreaWidth, screenHeight);
-        renderArmoredShields(uiBatch, camera, enemies, armoredShieldTexture, uiScale, mapAreaWidth, screenHeight);
+        renderArmoredShields(uiBatch, camera, enemies, armoredShieldTexture, armoredShieldBgTexture, uiScale,
+            mapAreaWidth, screenHeight);
     }
 
     private static void renderEarthquakeFields(ShapeRenderer uiShapeRenderer,
@@ -174,10 +176,11 @@ final class OverlayRenderer {
             PerspectiveCamera camera,
             Array<Enemy> enemies,
             Texture armoredShieldTexture,
+            Texture armoredShieldBgTexture,
             float uiScale,
             int mapAreaWidth,
             int screenHeight) {
-        if (armoredShieldTexture == null || enemies == null || enemies.size == 0) {
+        if (armoredShieldTexture == null || armoredShieldBgTexture == null || enemies == null || enemies.size == 0) {
             return;
         }
 
@@ -197,6 +200,8 @@ final class OverlayRenderer {
             }
 
             float iconSize = 18f * uiScale;
+            uiBatch.setColor(0f, 0f, 0f, 0.9f);
+            uiBatch.draw(armoredShieldBgTexture, screenPos.x - iconSize * 0.5f, screenPos.y, iconSize, iconSize);
             uiBatch.setColor(1f, 1f, 1f, 0.95f);
             uiBatch.draw(armoredShieldTexture, screenPos.x - iconSize * 0.5f, screenPos.y, iconSize, iconSize);
         }
