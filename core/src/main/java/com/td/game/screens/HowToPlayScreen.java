@@ -93,11 +93,11 @@ public class HowToPlayScreen implements Screen {
         leftY = drawLine("- Sniper Pedestal: Long range", leftX, leftY, BODY_COLOR);
 
         leftY -= SECTION_BREAK;
-        leftY = drawHeading("3. Elements & Staff", leftX, leftY);
+        leftY = drawHeading("3. Elements & Charm", leftX, leftY);
         leftY = drawLine("- Buy Orbs in Shop: Fire, Water, Earth, Air", leftX, leftY, BODY_COLOR);
-        leftY = drawLine("- Click an Orb to equip it to your Wizard Staff", leftX, leftY, BODY_COLOR);
+        leftY = drawLine("- Click an Orb to equip it to your Alchemist's Charm", leftX, leftY, BODY_COLOR);
         leftY = drawLine("- Click a Pillar to socket your equipped Orb", leftX, leftY, BODY_COLOR);
-        leftY = drawLine("- Click your Staff icon to unequip the Orb", leftX, leftY, BODY_COLOR);
+        leftY = drawLine("- Click your Charm icon to unequip the Orb", leftX, leftY, BODY_COLOR);
 
         float rightY = topY;
         rightY = drawHeading("4. Merge & Master", rightX, rightY);
@@ -112,7 +112,7 @@ public class HowToPlayScreen implements Screen {
         rightY -= SECTION_BREAK;
         rightY = drawHeading("5. Alchemist Aura", rightX, rightY);
         rightY = drawLine("- Move your Alchemist to reposition the Aura.", rightX, rightY, BODY_COLOR);
-        rightY = drawLine("- Staff Orbs buff nearby Pillars in the Aura:", rightX, rightY, BODY_COLOR);
+        rightY = drawLine("- Charm Orbs buff nearby Pillars in the Aura:", rightX, rightY, BODY_COLOR);
         rightY = drawLine("   Fire: +Damage%  | Water: +Range%", rightX, rightY, EMPHASIS_COLOR);
         rightY = drawLine("   Earth: +Stats%  | Hybrids: Special Charms!", rightX, rightY, EMPHASIS_COLOR);
 
