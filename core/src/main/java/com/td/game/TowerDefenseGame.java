@@ -1,6 +1,7 @@
 package com.td.game;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.td.game.screens.IntroScreen;
@@ -21,13 +22,15 @@ public class TowerDefenseGame extends Game {
         OptionsManager.load();
         audio.setMusicVolume(OptionsManager.get().musicVolume);
         audio.setSoundVolume(OptionsManager.get().soundVolume);
-        if (OptionsManager.get().fullscreen != com.badlogic.gdx.Gdx.graphics.isFullscreen()) {
-            if (OptionsManager.get().fullscreen) {
-                com.badlogic.gdx.Graphics.DisplayMode dm = com.badlogic.gdx.Gdx.graphics.getDisplayMode();
-                com.badlogic.gdx.Gdx.graphics.setFullscreenMode(dm);
-            } else {
-                com.badlogic.gdx.Gdx.graphics.setWindowedMode(1920, 1080);
-            }
+        boolean wantsFullscreen = OptionsManager.get().fullscreen;
+        if (wantsFullscreen) {
+            Gdx.graphics.setWindowedMode(1920, 1080);
+            Gdx.app.postRunnable(() -> {
+                com.badlogic.gdx.Graphics.DisplayMode dm = Gdx.graphics.getDisplayMode();
+                Gdx.graphics.setFullscreenMode(dm);
+            });
+        } else if (Gdx.graphics.isFullscreen()) {
+            Gdx.graphics.setWindowedMode(1920, 1080);
         }
 
         setScreen(new IntroScreen(this));
