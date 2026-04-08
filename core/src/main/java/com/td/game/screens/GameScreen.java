@@ -1492,7 +1492,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         }
 
         uiFontLarge.setColor(canStartWave ? Color.BLACK : Color.DARK_GRAY);
-        String playText = waveManager.areAllWavesComplete() ? "DONE" : "PLAY";
+        String playText = (waveManager.areAllWavesComplete() && !wasJumpedPastMaxWave) ? "DONE" : "PLAY";
         glyphLayout.setText(uiFontLarge, playText);
         if (glyphLayout.width > playBtnW - 4f) {
             uiFont.setColor(canStartWave ? Color.BLACK : Color.DARK_GRAY);
@@ -2624,7 +2624,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             saveGameState();
         }
 
-        if (!waveManager.isWaveInProgress() && !waveManager.areAllWavesComplete()) {
+        if (!waveManager.isWaveInProgress() && (!waveManager.areAllWavesComplete() || wasJumpedPastMaxWave)) {
             if (waveManager.getCurrentWave() > 0 && waveManager.getCurrentWave() % 10 == 0
                     && !waveManager.hasShownAugmentForWave(waveManager.getCurrentWave())) {
                 showAugmentSelection();
@@ -2997,7 +2997,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 }
                 if (isInRect(screenX, flippedY, playBtnX, playBtnY, playBtnW, playBtnH)) {
                     if (!waveManager.isWaveInProgress()) {
-                        if (waveManager.areAllWavesComplete()) {
+                        if (waveManager.areAllWavesComplete() && !wasJumpedPastMaxWave) {
                             winNormal(globalTimer);
                         } else if (!augmentChoiceActive) {
                             saveGameState();
