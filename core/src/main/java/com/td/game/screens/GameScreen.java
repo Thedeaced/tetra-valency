@@ -2799,9 +2799,16 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             return false;
         }
 
-        EndgameScreen.EndState endState = endlessMode
-                ? EndgameScreen.EndState.ENDLESS_FINISH
-                : EndgameScreen.EndState.WIN;
+        // If not jumped past max wave and not endless mode, show WIN screen
+        EndgameScreen.EndState endState;
+        if (!wasJumpedPastMaxWave && !endlessMode) {
+            endState = EndgameScreen.EndState.WIN;
+        } else if (endlessMode) {
+            endState = EndgameScreen.EndState.ENDLESS_FINISH;
+        } else {
+            // Jumped past max wave in normal mode (shouldn't happen, but fallback to LOSE)
+            endState = EndgameScreen.EndState.LOSE;
+        }
         openEndgameScreen(endState, currentWave, Math.max(0f, elapsedTime));
         return true;
     }

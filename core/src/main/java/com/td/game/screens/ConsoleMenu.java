@@ -421,11 +421,8 @@ public class ConsoleMenu {
             return;
         }
 
-        int waveCap = waveManager.getMaxWaves();
-        int effectiveWave = Math.min(targetWave, waveCap);
-
-        // Track if jumped past max wave boundary
-        if (targetWave > waveCap) {
+        // Track if jumped past wave 50 boundary (hardcoded, normal game limit)
+        if (targetWave > 50) {
             ctx.setWasJumpedPastMaxWave(true);
         } else {
             ctx.setWasJumpedPastMaxWave(false);
@@ -433,11 +430,11 @@ public class ConsoleMenu {
 
         ctx.killAllEnemies();
         waveManager.removeDeadEnemies();
-        waveManager.jumpToWave(effectiveWave);
+        waveManager.jumpToWave(targetWave);
         waveManager.startNextWave();
-        waveInput = String.valueOf(effectiveWave);
+        waveInput = String.valueOf(targetWave);
         activeInput = INPUT_NONE;
-        ctx.showMessage("Jumped to wave " + effectiveWave);
+        ctx.showMessage("Jumped to wave " + targetWave);
     }
 
     private void applyAugmentFromConsole(Context ctx) {
