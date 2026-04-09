@@ -54,7 +54,7 @@ public class WaveManager implements Disposable {
     private Model pinkBlobModel;
     private Model golemModel;
     private Model batModel;
-    private Model demonModel;
+    protected Model demonModel;
 
     public WaveManager(Array<Vector3> pathWaypoints, ModelFactory modelFactory) {
         this.pathWaypoints = pathWaypoints;

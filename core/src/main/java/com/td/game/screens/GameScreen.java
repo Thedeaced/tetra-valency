@@ -43,6 +43,7 @@ import com.td.game.pillars.PillarType;
 import com.td.game.player.Player;
 import com.td.game.systems.EconomyManager;
 import com.td.game.systems.EndlessWaveManager;
+import com.td.game.systems.SaveData;
 import com.td.game.systems.WaveManager;
 import com.td.game.ui.ContextualMenuPanel;
 import com.td.game.ui.GameShop;
@@ -177,6 +178,9 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private boolean victorySfxPlayed;
     private boolean loseSfxPlayed;
     private boolean wasJumpedPastMaxWave = false;
+    private boolean consoleEndlessBigWave = false;
+    private boolean saveDirty = false;
+    private boolean hasMeaningfulSave = false;
     private boolean augmentChoiceActive;
     private int augmentOptionA;
     private int augmentOptionB;
@@ -542,6 +546,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             if (willCompleteMerge && mergeBoard.hasResult()) {
                 economyManager.spend(MERGE_COST);
             }
+            markDirtyAndSave();
         } else {
             showMessage("Merge slots are full.");
         }
@@ -564,6 +569,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         } else {
             int idx = staffUI.getEquippedElement().ordinal();
             player.setStaffOrbModel(new ModelInstance(orbModels[idx]), staffUI.getEquippedElement());
+            markDirtyAndSave();
         }
     }
 
@@ -605,13 +611,14 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             return;
         }
 
+        clearProjectiles();
         waveManager.killAllEnemies();
         waveManager.removeDeadEnemies();
 
         // Force wave completion bookkeeping so we can advance immediately.
         waveManager.update(0f);
 
-        if (!waveManager.isWaveInProgress()) {
+        if (!waveManager.isWaveInProgress() && autoplayEnabled) {
             tryStartNextWave();
         }
     }
@@ -619,6 +626,67 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     @Override
     public void setWasJumpedPastMaxWave(boolean value) {
         this.wasJumpedPastMaxWave = value;
+        if (value && !endlessMode) {
+            ensureEndlessWaveManager();
+        } else if (!value && !endlessMode) {
+            ensureNormalWaveManager();
+        }
+    }
+
+    @Override
+    public boolean canStartWave() {
+        return isPlayerOnBuildableTile();
+    }
+
+    @Override
+    public void setConsoleEndlessBigWave(boolean value) {
+        this.consoleEndlessBigWave = value;
+    }
+
+    @Override
+    public void clearProjectiles() {
+        activeProjectiles.clear();
+        activeEffects.clear();
+        if (pillars != null) {
+            for (Pillar pillar : pillars) {
+                pillar.resetFireBeam();
+            }
+        }
+    }
+
+    private void ensureEndlessWaveManager() {
+        if (waveManager instanceof EndlessWaveManager) {
+            return;
+        }
+        if (pathWaypoints == null || modelFactory == null) {
+            return;
+        }
+        switchWaveManager(new EndlessWaveManager(pathWaypoints, modelFactory));
+    }
+
+    private void ensureNormalWaveManager() {
+        if (!(waveManager instanceof EndlessWaveManager)) {
+            return;
+        }
+        if (pathWaypoints == null || modelFactory == null) {
+            return;
+        }
+        switchWaveManager(new WaveManager(pathWaypoints, modelFactory));
+    }
+
+    private void switchWaveManager(WaveManager next) {
+        WaveManager previous = waveManager;
+        SaveData waveState = new SaveData();
+        if (previous != null) {
+            previous.save(waveState);
+        }
+        waveManager = next;
+        if (waveManager != null) {
+            waveManager.load(waveState);
+        }
+        if (previous != null) {
+            previous.dispose();
+        }
     }
 
     private float toDisplayElapsedTime(float elapsedTime, boolean randomizeForConsole) {
@@ -632,10 +700,16 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         int currentWave = waveManager != null ? waveManager.getCurrentWave() : 1;
         int waveCap = waveManager != null ? waveManager.getMaxWaves() : 50;
         if (endState == EndgameScreen.EndState.ENDLESS_FINISH) {
+            if (randomizeForConsole && consoleEndlessBigWave) {
+                return MathUtils.random(1_000_000_000, Integer.MAX_VALUE);
+            }
             return Math.max(1, currentWave);
         }
         if (!randomizeForConsole) {
             return Math.max(1, currentWave);
+        }
+        if ((endlessMode || wasJumpedPastMaxWave) && endState == EndgameScreen.EndState.LOSE) {
+            return MathUtils.random(1, 50);
         }
         return MathUtils.random(1, Math.max(1, waveCap));
     }
@@ -664,7 +738,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         int lastWave = toDisplayWaveForState(EndgameScreen.EndState.WIN, randomizeForConsole);
         float shownTime = toDisplayElapsedTime(elapsedTime, randomizeForConsole);
         if (!randomizeForConsole) {
-            saveGameState();
+            markDirtyAndSave();
         }
         playVictorySfxOnce();
         openEndgameScreen(EndgameScreen.EndState.WIN, lastWave, shownTime);
@@ -776,6 +850,14 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
 
     public void enterOptions() {
         saveGameState();
+    }
+
+    private void saveOrCleanupBeforeExit() {
+        if (saveDirty) {
+            saveGameState();
+        } else if (!hasMeaningfulSave && !loadFromSave) {
+            com.td.game.systems.SaveManager.deleteSave(mapType);
+        }
     }
 
     private void resumeFromPause() {
@@ -1229,7 +1311,10 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         float livesEndX = 70f * uiScale + glyphLayout.width;
 
         int waveCap = waveManager != null ? waveManager.getMaxWaves() : 50;
-        String waveText = "WAVE " + (waveManager != null ? waveManager.getCurrentWave() : 0) + "/" + waveCap;
+        int waveNumber = waveManager != null ? waveManager.getCurrentWave() : 0;
+        String waveText = (endlessMode || wasJumpedPastMaxWave)
+            ? "WAVE " + waveNumber
+            : "WAVE " + waveNumber + "/" + waveCap;
         glyphLayout.setText(uiFontLarge, waveText);
         float waveStartX = mapAreaWidth - glyphLayout.width - 28f * uiScale;
         uiFontLarge.setColor(hudTopColor);
@@ -1527,7 +1612,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         uiShapeRenderer.rect(seeAugmentsBtnX, seeAugmentsBtnY, seeAugmentsBtnW, seeAugmentsBtnH);
 
         boolean canStartWave = !waveManager.isWaveInProgress()
-            && !waveManager.areAllWavesComplete()
+            && (!waveManager.areAllWavesComplete() || wasJumpedPastMaxWave || endlessMode)
             && isPlayerOnBuildableTile();
         uiShapeRenderer.setColor(canStartWave ? Color.WHITE : new Color(0.5f, 0.5f, 0.5f, 1f));
         uiShapeRenderer.rect(playBtnX, playBtnY, playBtnW, playBtnH);
@@ -2160,7 +2245,15 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         applyAugment(r);
     }
 
+    private void markDirtyAndSave() {
+        saveDirty = true;
+        saveGameState();
+    }
+
     private void saveGameState() {
+        if (!saveDirty) {
+            return;
+        }
         com.td.game.systems.SaveData data = new com.td.game.systems.SaveData();
         data.mapType = this.mapType.name();
         data.globalTimer = this.globalTimer;
@@ -2188,6 +2281,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         }
 
         com.td.game.systems.SaveManager.save(data, mapType);
+        saveDirty = false;
+        hasMeaningfulSave = true;
     }
 
     private void loadGame() {
@@ -2197,6 +2292,9 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             waveManager.load(data);
             economyManager.load(data);
             player.load(data);
+            syncPlayerGridFromPlayer();
+            int loadedWave = waveManager.getCurrentWave();
+            setWasJumpedPastMaxWave(loadedWave > 50);
             inventory.load(data);
             staffUI.load(data);
             if (staffUI.hasOrb()) {
@@ -2222,9 +2320,25 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 pillars.add(pillar);
             }
             com.badlogic.gdx.Gdx.app.log("GameScreen", "Save file loaded successfully.");
+            saveDirty = false;
+            hasMeaningfulSave = true;
         } else {
             com.badlogic.gdx.Gdx.app.error("GameScreen", "No save file found to load.");
         }
+    }
+
+    private void syncPlayerGridFromPlayer() {
+        if (player == null) {
+            return;
+        }
+        Vector3 pos = player.getPosition();
+        int gx = Math.round(pos.x / Constants.TILE_SIZE);
+        int gz = Math.round(pos.z / Constants.TILE_SIZE);
+        playerGridX = MathUtils.clamp(gx, 0, Constants.MAP_WIDTH - 1);
+        playerGridZ = MathUtils.clamp(gz, 0, Constants.MAP_HEIGHT - 1);
+        float worldX = playerGridX * Constants.TILE_SIZE;
+        float worldZ = playerGridZ * Constants.TILE_SIZE;
+        player.setPosition(new Vector3(worldX, 0f, worldZ));
     }
 
     public void save(com.td.game.systems.SaveData data) {
@@ -2295,7 +2409,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         game.audio.playAugmentPick();
         applyAugment(picked);
         acquiredAugments.add(new AcquiredAugment(picked));
-        saveGameState();
+        markDirtyAndSave();
         augmentChoiceActive = false;
         augmentOptionA = -1;
         augmentOptionB = -1;
@@ -2694,6 +2808,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                         playerGridZ = newZ;
                         player.moveTo(new Vector3(worldX, 0, worldZ), moveDelay);
                         moveTimer = moveDelay;
+                        markDirtyAndSave();
                     }
                 }
             }
@@ -2728,7 +2843,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 game.audio.playGoldGain();
                 showMessage("Gold Fund: +" + goldReward + " gold");
             }
-            saveGameState();
+            markDirtyAndSave();
         }
 
         if (!waveManager.isWaveInProgress() && (!waveManager.areAllWavesComplete() || wasJumpedPastMaxWave)) {
@@ -2737,7 +2852,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                     && !waveManager.hasShownAugmentForWave(currentWave)) {
                 showAugmentSelection();
                 waveManager.setShownAugmentForWave(currentWave, true);
-                saveGameState();
+                markDirtyAndSave();
             } else if (autoplayEnabled) {
                 tryStartNextWave();
             }
@@ -2932,6 +3047,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             if (inventory.addOrb(element)) {
                 economyManager.spend(price);
                 game.audio.playBuySuccess();
+                markDirtyAndSave();
             } else {
                 showErrorMessage("Inventory Full!");
             }
@@ -2984,7 +3100,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 } else if (inventory.hasSelection()) {
                     inventory.cancelSelection();
                 } else {
-                    saveGameState();
+                    saveOrCleanupBeforeExit();
                     Gdx.app.exit();
                 }
                 return true;
@@ -3035,12 +3151,12 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 } else if (isInRect(screenX, flippedY, btnX, menuY, btnW, btnH)) {
                     game.audio.playClick();
                     game.audio.playMenuMusic();
-                    saveGameState();
+                    saveOrCleanupBeforeExit();
                     game.setScreen(new MainMenuScreen(game));
                     dispose();
                 } else if (isInRect(screenX, flippedY, btnX, quitY, btnW, btnH)) {
                     game.audio.playClick();
-                    saveGameState();
+                    saveOrCleanupBeforeExit();
                     Gdx.app.exit();
                 }
                 return true;
@@ -3111,7 +3227,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                         if (waveManager.areAllWavesComplete() && !wasJumpedPastMaxWave) {
                             winNormal(globalTimer);
                         } else if (!augmentChoiceActive) {
-                            saveGameState();
+                            markDirtyAndSave();
                             tryStartNextWave();
                         }
                     }
@@ -3165,12 +3281,13 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                         PillarType type = buildMenu.getSelectedType();
                         if (type != null && selectedTilePos != null) {
                             if (economyManager.canAfford(type.getPrice())) {
-                                economyManager.spend(type.getPrice());
-                                game.audio.playBuySuccess();
-                                Pillar pillar = new Pillar(type, selectedTilePos.cpy(), modelFactory);
-                                pillars.add(pillar);
-                                buildMenu.hide();
-                                selectedTilePos = null;
+                            economyManager.spend(type.getPrice());
+                            game.audio.playBuySuccess();
+                            Pillar pillar = new Pillar(type, selectedTilePos.cpy(), modelFactory);
+                            pillars.add(pillar);
+                            markDirtyAndSave();
+                            buildMenu.hide();
+                            selectedTilePos = null;
                             } else {
                                 showErrorMessage("Not enough gold!");
                             }
@@ -3196,6 +3313,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                         pillars.removeValue(selectedPillar, true);
                         selectedPillar = null;
                         awaitingPillarOrbSelection = false;
+                        markDirtyAndSave();
                         return true;
                     }
                     if (panelButton == 1) {
@@ -3212,6 +3330,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                             }
                         }
                         awaitingPillarOrbSelection = false;
+                        markDirtyAndSave();
                         return true;
                     }
 
@@ -3233,6 +3352,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                         }
                         game.audio.playSell();
                         showMessage("Orb sold for 0G");
+                        markDirtyAndSave();
                         return true;
                     }
 
@@ -3241,6 +3361,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                         Element selected = inventory.takeSelected();
                         selectedPillar.placeOrb(selected);
                         awaitingPillarOrbSelection = false;
+                        markDirtyAndSave();
                     }
                     return true;
                 }
@@ -3252,6 +3373,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 }
 
                 if (staffUI.contains(screenX, screenY)) {
+                    boolean changed = false;
                     if (inventory.hasSelection()) {
                         Element selected = inventory.takeSelected();
                         Element old = staffUI.equipOrb(selected);
@@ -3262,6 +3384,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                         } else {
                             int idx = staffUI.getEquippedElement().ordinal();
                             player.setStaffOrbModel(new ModelInstance(orbModels[idx]), staffUI.getEquippedElement());
+                            changed = true;
                         }
                     } else {
                         Element orb = staffUI.removeOrb();
@@ -3270,12 +3393,19 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                             staffUI.equipOrb(orb);
                         } else {
                             player.clearStaffOrb();
+                            if (orb != null) {
+                                changed = true;
+                            }
                         }
+                    }
+                    if (changed) {
+                        markDirtyAndSave();
                     }
                     return true;
                 }
 
                 if (mergeBoard.isInBounds(screenX, flippedY)) {
+                    boolean changed = false;
                     if (inventory.hasSelection()) {
                         boolean willCompleteMerge = mergeBoard.hasSlot1() ^ mergeBoard.hasSlot2();
                         if (willCompleteMerge && !economyManager.canAfford(MERGE_COST)) {
@@ -3286,6 +3416,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                         boolean hadResult = mergeBoard.hasResult();
                         if (mergeBoard.placeOrb(screenX, flippedY, inventory.getSelectedOrb())) {
                             inventory.takeSelected();
+                            changed = true;
                             if (!hadResult && mergeBoard.hasResult()) {
                                 economyManager.spend(MERGE_COST);
                                 if (inventory.isFull()) {
@@ -3299,6 +3430,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                                     Element result = mergeBoard.takeResult();
                                     if (result != null && inventory.addOrb(result)) {
                                         mergeBoard.tryResolveMerge();
+                                        changed = true;
                                     } else if (result != null) {
                                         mergeBoard.setResultElement(result);
                                     }
@@ -3313,13 +3445,19 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                                 showErrorMessage("Inventory full. Take the merge result before creating a new one.");
                                 mergeBoard.setResultElement(result);
                             }
+                            changed = true;
                         } else {
                             Element inputOrb = mergeBoard.tryTakeInputOrb(screenX, flippedY);
                             if (inputOrb != null && !inventory.addOrb(inputOrb)) {
                                 showErrorMessage("Inventory Full!");
                                 mergeBoard.placeOrb(screenX, flippedY, inputOrb);
+                            } else if (inputOrb != null) {
+                                changed = true;
                             }
                         }
+                    }
+                    if (changed) {
+                        markDirtyAndSave();
                     }
                     return true;
                 }

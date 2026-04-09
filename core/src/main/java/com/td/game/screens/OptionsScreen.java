@@ -460,7 +460,10 @@ public class OptionsScreen implements Screen {
             if (waitingFor != null) {
                 KeyBindings.Action conflict = KeyBindings.getActionForKey(keycode);
                 if (conflict != null && conflict != waitingFor) {
-                    showNotice("Key already bound to " + getActionLabel(conflict));
+                    int previousKey = KeyBindings.getKey(waitingFor);
+                    KeyBindings.setKey(waitingFor, keycode);
+                    KeyBindings.setKey(conflict, previousKey);
+                    showNotice("Swapped " + getActionLabel(waitingFor) + " and " + getActionLabel(conflict));
                     waitingFor = null;
                     return true;
                 }

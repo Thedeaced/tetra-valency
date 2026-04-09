@@ -63,6 +63,9 @@ public class EndgameScreen implements Screen {
 
     @Override
     public void show() {
+        if (batch != null || shapes != null || font != null || titleFont != null) {
+            dispose();
+        }
         batch = new SpriteBatch();
         shapes = new ShapeRenderer();
         font = createFont("fonts/font_game_screen.ttf", 28);
@@ -210,13 +213,11 @@ public class EndgameScreen implements Screen {
         if (endState == EndState.WIN) {
             Dreamlo.uploadTimeScore(name, timerSeconds, mapType);
             game.setScreen(new WinLeaderboardScreen(game, mapType, name, timerSeconds, this));
-            dispose();
             return;
         }
         if (endState == EndState.ENDLESS_FINISH || endState == EndState.LOSE) {
             Dreamlo.uploadWaveScore(name, lastWave, mapType);
             game.setScreen(new EndlessLeaderboardScreen(game, mapType, name, lastWave, this));
-            dispose();
         }
     }
 

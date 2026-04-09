@@ -383,6 +383,13 @@ public class Pillar implements Disposable {
         return fireBeamTimer;
     }
 
+    public void resetFireBeam() {
+        fireBeamTimer = 0f;
+        if (fireAttack != null) {
+            fireAttack.resetRamping();
+        }
+    }
+
     public float getAttackRange() {
         return PillarData.BASE_RANGE * type.getRangeMult() * bonusRangeMult;
     }

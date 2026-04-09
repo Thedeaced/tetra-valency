@@ -32,6 +32,9 @@ public class ConsoleMenu {
         int getAugmentCount();
         void replaceFirstAugment(int id);
         void setWasJumpedPastMaxWave(boolean value);
+        boolean canStartWave();
+        void setConsoleEndlessBigWave(boolean value);
+        void clearProjectiles();
     }
 
     public static class Layout {
@@ -312,7 +315,9 @@ public class ConsoleMenu {
                 ctx.winNormal(-1f);
                 break;
             case "loseendless":
+                ctx.setConsoleEndlessBigWave(true);
                 ctx.loseEndless(-1f);
+                ctx.setConsoleEndlessBigWave(false);
                 break;
             case "lose":
                 ctx.lose(-1f);
@@ -402,6 +407,10 @@ public class ConsoleMenu {
         if (waveManager == null) {
             return;
         }
+        if (!ctx.canStartWave()) {
+            ctx.showMessage("Move off the path to start the wave.");
+            return;
+        }
 
         String rawValue = waveInput == null ? "" : waveInput.trim();
         if (rawValue.isEmpty()) {
@@ -429,9 +438,16 @@ public class ConsoleMenu {
             ctx.setWasJumpedPastMaxWave(false);
         }
 
+        // Refresh wave manager in case the context swapped to endless mode.
+        waveManager = ctx.getWaveManager();
+        if (waveManager == null) {
+            return;
+        }
+
         ctx.killAllEnemies();
         waveManager.removeDeadEnemies();
         waveManager.jumpToWave(targetWave);
+        ctx.clearProjectiles();
         waveInput = String.valueOf(targetWave);
         activeInput = INPUT_NONE;
         ctx.showMessage("Jumped to wave " + targetWave);

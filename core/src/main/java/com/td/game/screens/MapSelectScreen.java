@@ -282,6 +282,7 @@ public class MapSelectScreen implements Screen {
             if (newGameABtn.contains(screenX, y)) {
                 game.audio.playClick();
                 game.audio.stopMenuMusic();
+                com.td.game.systems.SaveManager.deleteSave(GameMap.MapType.ELEMENTAL_CASTLE);
                 game.setScreen(new GameScreen(game, GameMap.MapType.ELEMENTAL_CASTLE));
                 dispose();
                 return true;
@@ -289,6 +290,7 @@ public class MapSelectScreen implements Screen {
             if (newGameBBtn.contains(screenX, y)) {
                 game.audio.playClick();
                 game.audio.stopMenuMusic();
+                com.td.game.systems.SaveManager.deleteSave(GameMap.MapType.DESERT_OASIS);
                 game.setScreen(new GameScreen(game, GameMap.MapType.DESERT_OASIS));
                 dispose();
                 return true;
