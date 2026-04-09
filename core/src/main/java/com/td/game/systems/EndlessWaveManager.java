@@ -21,7 +21,7 @@ public class EndlessWaveManager extends WaveManager {
 
     @Override
     public int getMaxWaves() {
-        return ENDLESS_WAVE_CAP;
+        return Integer.MAX_VALUE;
     }
 
     @Override
